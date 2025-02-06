@@ -16,7 +16,7 @@ filelock==3.8.0
 idna==3.4
 jmespath==1.0.1
 Pillow==10.0.1
-platformdirs==2.5.2p
+platformdirs==2.5.2
 PyJWT==2.6.0
 python-dateutil==2.8.2
 pytz==2022.6
