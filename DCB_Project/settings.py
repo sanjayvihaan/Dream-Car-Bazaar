@@ -92,12 +92,27 @@ WSGI_APPLICATION = 'DCB_Project.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+SELECTED_DB = 'Test'
+
+if SELECTED_DB == 'Test':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': 't1BXLcLMfam85uMRXYt8',
+            'HOST': 'dcbtest1.c90262igogn5.ap-south-1.rds.amazonaws.com',
+            'CONN_MAX_AGE': None,
+            'PORT': '5432',  # Set to empty string for default.
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
