@@ -177,7 +177,3 @@ MEDIA_ROOT = '/home/dreamcar/DCB_Project/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'UserManagement.CustomUser'
-<<<<<<< HEAD
-
-=======
->>>>>>> 85c2756 (New Code)
