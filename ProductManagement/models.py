@@ -19,12 +19,9 @@ from django.utils import timezone
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-<<<<<<< HEAD
-=======
 from django.contrib.auth.models import User
 from django.utils import timezone
 
->>>>>>> 85c2756 (New Code)
 tz = pytz.timezone('Asia/Calcutta')
 current_datetime = datetime.datetime.now(tz=tz)
 
@@ -347,10 +344,6 @@ class CarViews(models.Model):
 
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 85c2756 (New Code)
 class WishlistCar(models.Model):
     id = models.CharField(default=generate_unique_object_id, primary_key=True, max_length=24)
     car_id = models.ForeignKey(CarDetails, on_delete=models.CASCADE, related_name='wishlist_car')
