@@ -98,6 +98,8 @@
                             <h5 style="font-weight: 600">KYC Documents</h5>
                             <p class="profile-data-para mb-2 "><i class="fa fa-file mr-1"></i>Pan Card - {{request.user.pan_card}}<a href="https://dreamcarbazaar.com/media/{{request.user.pan_card|urlencode}}" target="_blank"><i class=" fa fa-eye" style="margin-left : 10px"></i></a> <a href="https://dreamcarbazaar.com/media/{{request.user.pan_card}}" download="{{request.user.pan_card}}" target="_blank"><i class=" fa fa-download" style="margin-left : 10px"></i></a></p>
                             <p class="profile-data-para mb-2 "><i class="fa fa-file mr-1"></i>Aadhar Card - {{request.user.aadhar_card}} <a href="https://dreamcarbazaar.com/media/{{request.user.aadhar_card|urlencode}}" target="_blank"><i class=" fa fa-eye" style="margin-left : 10px"></i></a> <a href="https://dreamcarbazaar.com/media/{{request.user.aadhar_card}}" download="{{request.user.aadhar_card}}" target="_blank"><i class=" fa fa-download" style="margin-left : 10px"></i></a></p>
+                            <p class="profile-data-para mb-2 "><i class="fa fa-file mr-1"></i>GST - {{ request.user.gst }} <a href="https://dreamcarbazaar.com/media/{{request.user.gst|urlencode}}" target="_blank"><i class=" fa fa-eye" style="margin-left : 10px"></i></a> <a href="https://dreamcarbazaar.com/media/{{request.user.gst}}" download="{{request.user.gst}}" target="_blank"><i class=" fa fa-download" style="margin-left : 10px"></i></a></p>
+                        
                         </div>
                     </div>
                     <div class="dropdown ">
@@ -115,11 +117,12 @@
                     <div class="flex-grow-1 align-self-center ">
                         <div class="text-dark ">
                             <h5 style="font-weight: 600">Invoice</h5>
+                            <p class="profile-data-para mb-2"><i class="fa fa-file mr-1"></i>Invoice-{{request.user}}</p>
                         </div>
                     </div>
                     <div class="dropdown ">
-                        <a href="#" class=" mr-1 "><i class="fa fa-eye "></i> <span class="d-none d-sm-inline-block">View</span></a>
-                        <a href="#" class=" mr-1  text-danger"><i class="fa fa-download"></i> <span class="d-none d-sm-inline-block">Download</span></a>
+                        <a href="https://dreamcarbazaar.com/media/invoice/DCB-Final-Invoice.pdf" class=" mr-1 "><i class="fa fa-eye "></i> <span class="d-none d-sm-inline-block">View</span></a>
+                        <a href="https://dreamcarbazaar.com/media/invoice/DCB-Final-Invoice.pdf" class=" mr-1  text-danger"><i class="fa fa-download"></i> <span class="d-none d-sm-inline-block">Download</span></a>
                     </div>
                 </div>
             </div>
@@ -175,12 +178,17 @@
 </div>
 
 
+
+{% endblock %}
+
+{% block js %}
 <script>
+const oldpassword = document.getElementById('dealer-old-password');
 const newPasswordField = document.getElementById('dealer-new-password');
 const reNewPasswordField = document.getElementById('dealer-re-new-password');
 const errorMessage = document.getElementById('error-message');
 const submitButton = document.getElementById('submitButton');
-
+errorMessage.textContent = " ";
 // Function to validate password requirements
 function validatePassword(password) {
     const hasNumber = /\d/.test(password); // Check for at least one number
@@ -223,24 +231,34 @@ document.getElementById('passwordForm').addEventListener('submit', function(even
 });
 
 // Toggle password visibility functionality remains the same
-const togglePasswordButtons = document.querySelectorAll('.togglePassword');
+document.addEventListener('DOMContentLoaded', function () {
+    // Select all password toggle buttons
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
 
-togglePasswordButtons.forEach(button => {
-    button.addEventListener('click', function () {
-        const passwordField = this.previousElementSibling;
-        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordField.setAttribute('type', type);
-        
-        // Toggle the eye icon
-        this.querySelector('i').classList.toggle('fa-eye');
-        this.querySelector('i').classList.toggle('fa-eye-slash');
+    // Loop through each button and add an event listener
+    togglePasswordButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // Find the password field associated with the button
+            const passwordField = this.previousElementSibling;
+
+            // Ensure we're targeting the input correctly
+            if (passwordField && passwordField.type === 'password') {
+                // Change the input type to 'text' to reveal the password
+                passwordField.type = 'text';
+            } else if (passwordField && passwordField.type === 'text') {
+                // Change the input type back to 'password' to hide the password
+                passwordField.type = 'password';
+            }
+
+            // Toggle the eye icon between 'fa-eye' and 'fa-eye-slash'
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
     });
 });
 
 </script>
-{% endblock %}
-
-{% block js %}
 <script>
 
 const form = document.querySelector('#myForm');

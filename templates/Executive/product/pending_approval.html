@@ -81,7 +81,8 @@
                                                 <button class="btn btn-sm btn-primary">Save</button>
                                             </td>
                                         </tr>
-
+                                            
+                                        
                                         {% for car_detail in all_car_details %}
                                             <tr>
                                                 <td>
@@ -103,15 +104,20 @@
                                                                 <i class="fa fa-eye"></i>
                                                             </a>
                                                         </td>
-                                                <td>
-                                                    <select name="approval" id="approval">
-                                                        <option value="yes">Approve</option>
-                                                        <option value="no">Reject</option>
-                                                    </select>
+                                               <td>
+                                                    <form method="POST" action="{% url 'executive:car_review' %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="car_id" value="{{ car_detail.id }}">
+                                                        <select name="approval" id="approval-{{ car_detail.id }}">
+                                                            <option value="yes">Approve</option>
+                                                            <option value="no">Reject</option>
+                                                        </select>
+                                                        <td>
+                                                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                                                        </td>
+                                                    </form>
                                                 </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-primary">Save</button>
-                                                </td>
+                                                
                                         </tr>
 
                                         {% endfor %}

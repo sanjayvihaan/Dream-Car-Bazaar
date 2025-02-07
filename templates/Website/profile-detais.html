@@ -118,7 +118,11 @@
                                     <div class="car-listing list_style">
                                         <div class="thumb">
                                             <div class="tag">FEATURED</div>
-                                            <img class="img-fluid" src="{% if car_detail.car_image %} https://dreamcarbazaar.com/media/{{car_detail.car_image}} {% else %} {% static 'images/listing/2.jpg' %} {% endif %}" alt="1.jpg">
+                                            {% if car_detail.car_image %}
+                                                <img class="img-fluid" src="https://dreamcarbazaar.com/media/{{ car_detail.car_image }}" alt="Car Image">
+                                            {% else %}
+                                                <img class="img-fluid" src="{% static 'images/listing/2.jpg' %}" alt="Default Car Image">
+                                            {% endif %}
                                             <div class="thmb_cntnt2">
                                                 <ul class="mb0">
                                                     <li class="list-inline-item"><a class="text-white" href="#"><span

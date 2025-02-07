@@ -2,8 +2,64 @@
 {% load static %}
 
 {% block common_css %}
+<!-- FullCalendar CSS -->
 
-
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 1rem;
+            margin: 20px 0;
+            max-width: 350px; /* Adjust to make the calendar compact */
+            margin: 0 auto; /* Center the calendar */
+        }
+        .calendar .day {
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+            position: relative;
+        }
+        .calendar .day:hover {
+            background-color: #d1e7fd;
+        }
+        .calendar .current-day {
+            background-color: #007bff;
+            color: white;
+        }
+        .calendar .empty-day {
+            background-color: transparent;
+            cursor: default;
+        }
+        .event-marker {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: red;
+            border-radius: 50%;
+        }
+        /* Compact calendar style */
+        .calendar-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+        .calendar-header button,
+        .calendar-header select {
+            font-size: 1rem;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -97,7 +153,7 @@
                                     </a>
                                 </div>
                                 <div class="col-md-4">
-                                    <a href="follow-up.html">
+                                    <a href="{% url 'dealer:follow_up'%}">
                                         <div class="card mini-stats-wid">
                                             <div class="card-body">
                                                 <div class="d-flex">
@@ -118,6 +174,7 @@
                                         </div>
                                     </a>
                                 </div>
+                                 
                                 <div class="col-md-4">
                                     <a href="">
                                         <div class="card mini-stats-wid">
@@ -173,7 +230,50 @@
                                         <div class="col-lg-9">
                                             <div class="card">
                                                 <div class="card-body">
-                                                    <div id="calendar"></div>
+                                                    <div class="container calendar-container">
+                                                        <h2 class="my-4 text-center">Calendar & Events </h2>
+                                                
+                                                        <!-- Calendar Navigation -->
+                                                        <div class="calendar-header">
+                                                            <button id="prevMonth" class="btn btn-secondary">&lt;</button>
+                                                            <div>
+                                                                <span id="monthYearLabel"></span>
+                                                                <select id="yearSelect" class="form-select d-inline-block w-auto ml-2"></select>
+                                                            </div>
+                                                            <button id="nextMonth" class="btn btn-secondary">&gt;</button>
+                                                        </div>
+                                                        <!-- Calendar Container -->
+                                                        <br></br>
+                                                        <div id="calendar" class="calendar"></div>
+                                                    </div>
+                                                    <!-- Modal for Scheduling Event -->
+                                                    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="eventModalLabel">Schedule an Event</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <form id="eventForm">
+                                                                        <div class="mb-3">
+                                                                            <label for="eventDate" class="form-label">Date</label>
+                                                                            <input type="text" class="form-control" id="eventDate" disabled>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="eventTitle" class="form-label">Event Title</label>
+                                                                            <input type="text" class="form-control" id="eventTitle" placeholder="Enter event title">
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="eventDescription" class="form-label">Event Description</label>
+                                                                            <textarea class="form-control" id="eventDescription" placeholder="Enter event description"></textarea>
+                                                                        </div>
+                                                                        <button type="submit" class="btn btn-primary">Save Event</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -850,5 +950,148 @@
 {% endblock %}
 
 {% block js %}
+        <!-- jQuery & Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
 
+    <script>
+        $(document).ready(function() {
+            // Get current date
+            const today = new Date();
+            let currentMonth = today.getMonth(); // Current month (0-11)
+            let currentYear = today.getFullYear(); // Current year (yyyy)
+
+            // Store events in an object: date as key, events as values
+            let events = {};
+
+            // Days of the week
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            // Function to generate the calendar
+            function generateCalendar(month, year) {
+                // Clear the calendar
+                $('#calendar').empty();
+
+                // Get the first day of the month and the number of days in the month
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                // Display the days of the week
+                daysOfWeek.forEach(day => {
+                    $('#calendar').append(`<div class="day">${day}</div>`);
+                });
+
+                // Add empty days before the start of the month
+                for (let i = 0; i < firstDay; i++) {
+                    $('#calendar').append('<div class="day empty-day"></div>');
+                }
+
+                // Add the actual days of the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const currentDate = new Date(year, month, day);
+                    const isToday = currentDate.toDateString() === today.toDateString();
+                    const dayClass = isToday ? 'day current-day' : 'day';
+
+                    // Format date as YYYY-MM-DD
+                    const formattedDate = `${year}-${month + 1}-${day}`;
+
+                    // Create the day cell
+                    const dayCell = $(`<div class="${dayClass}" data-date="${formattedDate}">${day}</div>`);
+
+                    // Check if there are any events for this day
+                    if (events[formattedDate] && events[formattedDate].length > 0) {
+                        // Add a marker for events
+                        dayCell.append('<div class="event-marker"></div>');
+                    }
+
+                    // Add the day cell to the calendar
+                    $('#calendar').append(dayCell);
+                }
+
+                // Update the month and year label
+                const monthNames = [
+                    'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+                $('#monthYearLabel').text(`${monthNames[month]} ${year}`);
+
+                // Update year dropdown
+                const startYear = 2020;
+                const endYear = 2030;
+                $('#yearSelect').empty();
+                for (let y = startYear; y <= endYear; y++) {
+                    $('#yearSelect').append(`<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`);
+                }
+            }
+
+            // Generate the calendar for the current month
+            generateCalendar(currentMonth, currentYear);
+
+            // Handle previous month button click
+            $('#prevMonth').click(function() {
+                currentMonth -= 1;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear -= 1;
+                }
+                generateCalendar(currentMonth, currentYear);
+            });
+
+            // Handle next month button click
+            $('#nextMonth').click(function() {
+                currentMonth += 1;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear += 1;
+                }
+                generateCalendar(currentMonth, currentYear);
+            });
+
+            // Handle year select change
+            $('#yearSelect').change(function() {
+                currentYear = parseInt($(this).val());
+                generateCalendar(currentMonth, currentYear);
+            });
+
+            // Handle click event on a day
+            $('#calendar').on('click', '.day', function() {
+                const selectedDate = $(this).data('date');
+                if (!selectedDate || $(this).hasClass('empty-day')) return;
+
+                // Show the modal
+                $('#eventDate').val(selectedDate);
+                $('#eventModal').modal('show');
+            });
+
+            // Handle form submission (event scheduling)
+            $('#eventForm').on('submit', function(event) {
+                event.preventDefault();
+
+                const eventDate = $('#eventDate').val();
+                const eventTitle = $('#eventTitle').val();
+                const eventDescription = $('#eventDescription').val();
+
+                if (!eventTitle || !eventDescription) {
+                    alert('Please provide both event title and description.');
+                    return;
+                }
+
+                // Save the event in the events object
+                if (!events[eventDate]) {
+                    events[eventDate] = [];
+                }
+                events[eventDate].push({
+                    title: eventTitle,
+                    description: eventDescription
+                });
+
+                // Close the modal and reset the form
+                $('#eventModal').modal('hide');
+                $('#eventForm')[0].reset();
+
+                // Re-generate the calendar to show the event markers
+                generateCalendar(currentMonth, currentYear);
+            });
+        });
+    </script>
 {% endblock %}

@@ -76,6 +76,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     user_image_url = models.URLField(null=True, blank=True)
     aadhar_card = models.ImageField(null=True, blank=True)
     pan_card = models.ImageField(null=True, blank=True)
+    gst = models.ImageField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey('self', on_delete=models.DO_NOTHING, null=True, blank=True)

@@ -2,8 +2,9 @@ from django.urls import path, include
 from .views import *
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import handler404
 
-
+handler404 = 'Dealer.views.custom_404'
 urlpatterns = [
     path('add_car/', add_car, name='add_car'),
     path('car_list/', car_list, name='car_list'),
@@ -19,6 +20,12 @@ urlpatterns = [
     path('dealer-profile/', profile, name='dealer-profile'),
     path('insurance/', insurance, name='insurance'),
     path('dashboard/', dealer_dashboard, name='dashboard'),
+    path('follow-up/', follow_up_view, name='follow_up'),
+    path('notification/read/<int:notification_id>/', mark_as_read, name='mark_as_read'),
+    path('delete-notification/<int:notification_id>/', delete_notification, name='delete_notification'),
+    path('update-lead/<str:car>/', update_lead_status, name='update_lead'),
+    path('update-duration/', update_duration, name='update_duration'),
+    path('download/lead-excel/', download_lead_excel, name='download_lead_excel'),
     path('warranty/', warranty, name='warranty'),   
     # path('warranty/delete/<str:id>/',delete_warranty, name='delete_warranty'),
     path('warranty/delete/<str:id>/',delete_warranty, name='delete-warranty'),

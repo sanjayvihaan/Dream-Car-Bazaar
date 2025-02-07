@@ -134,13 +134,14 @@
                                             <h4 class="modal-title" id="exampleModalLabel2">Schedule Test Drive
                                             </h4>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close">×</button>
+                                                aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
                                             <div id="std_notice" class="form-notice" style="display:none;">
                                             </div>
                                             <form class="gray-form reset_css login_form" id="std_form"
-                                                action="post">
+                                                method="post" action="{% url 'dealer:update_lead' car_details.id %}">
+                                                {% csrf_token %}
                                                 <input type="hidden" name="action" class="form-control"
                                                     value="schedule_test_drive">
                                                 <div class="mb-3">
@@ -156,22 +157,21 @@
                                                 <div class="mb-3">
                                                     <label class="form-label">Phone*</label>
                                                     <input type="text" class="form-control" id="std_phone"
-                                                        name="std_phone">
+                                                        name="std_phone" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">Preferred Day*</label>
-                                                    <input type="text" class="form-control" id="std_day"
+                                                    <input type="date" class="form-control" id="std_day"
                                                         name="std_day">
                                                 </div>
 
                                                 <div>
-                                                    <a class="button red" id="schedule_test_drive_submit" style="width: 150px;background: #0a2357;
-                                                        color: #fff;
-                                                        display: flex;
-                                                        justify-content: center;
-                                                        align-items: center;
-                                                        font-weight: 600;
-                                                        padding: 10px;">Schedule Now</a>
+                                                
+                                                    <button type="submit" class="button red" style="width: 150px; background: #0a2357; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: 600; padding: 10px;">
+                                                        Schedule Now
+                                                    </button>
+                                                    
+                                                  
                                                 </div>
                                             </form>
                                         </div>
@@ -755,8 +755,35 @@
 </section>
 
 
-
 {% include 'Website/product/car_list.html' %}
 {% include 'Website/footer.html' %}
 </div>
 {% endblock %}
+
+{% block js%}
+<script>
+    let startTime = Date.now();
+
+    // When the user is about to leave the page (unload event)
+    window.addEventListener('beforeunload', function() {
+        let endTime = Date.now();
+        let timeSpent = Math.round((endTime - startTime) / 1000); // Time in seconds
+        let carId = "{{car_details.id}}"
+        // Send the data to the server via a fetch request
+        fetch("{% url 'dealer:update_duration' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',  // Ensure CSRF protection
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'time_spent': timeSpent,
+                'car': carId
+            })
+        });
+    });
+</script>
+
+{% endblock %}
+
+

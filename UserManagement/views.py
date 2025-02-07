@@ -16,7 +16,7 @@ from itertools import chain
 def home(request):
     form = LoginForm()
     car_image = CarImage.objects.filter(car_detail=OuterRef('id')).order_by('-created_at').values('image')[:1]
-    car_details = CarDetails.objects.filter(is_active=True).exclude(is_draft=True).exclude(status='deleted').exclude(status='sold').annotate(car_image=Subquery(car_image)).order_by('-updated_at')[:12]
+    car_details = CarDetails.objects.filter(is_active=True,review='approved').exclude(is_draft=True).exclude(status='deleted').exclude(status='sold').annotate(car_image=Subquery(car_image)).order_by('-updated_at')[:12]
     draft_live = DraftCarDetails.objects.filter(status='live').exclude(is_draft=True).order_by('-updated_at')
     combined_list = list(car_details) + list(draft_live.exclude(cardetails_ptr_id__in=car_details.values('id')))
 
@@ -34,7 +34,7 @@ def home(request):
 def car_listing(request):
     form = LoginForm()
     car_image = CarImage.objects.filter(car_detail=OuterRef('id')).order_by('-created_at').values('image')[:1]
-    all_car_details = CarDetails.objects.filter(is_active=True).exclude(is_draft= True).exclude(status='deleted').exclude(status='sold').annotate(car_image=Subquery(car_image)).order_by('-created_at')
+    all_car_details = CarDetails.objects.filter(is_active=True,review='approved').exclude(is_draft= True).exclude(status='deleted').exclude(status='sold').annotate(car_image=Subquery(car_image)).order_by('-created_at')
     car_brand = CarBrands.objects.filter(is_active=True)
     # print('all_car_details = ', all_car_details)
     return render(request, "Website/product_details/product_detail.html", {'form': form, 'all_car_details': all_car_details, 'car_brands': car_brand})

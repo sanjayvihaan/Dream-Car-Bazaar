@@ -19,6 +19,12 @@ from django.utils import timezone
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
+<<<<<<< HEAD
+=======
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+>>>>>>> 85c2756 (New Code)
 tz = pytz.timezone('Asia/Calcutta')
 current_datetime = datetime.datetime.now(tz=tz)
 
@@ -191,10 +197,11 @@ class CarDetails(models.Model):
             ('No', 'No'),
         ]    
     id = models.CharField(default=generate_unique_object_id, primary_key=True, max_length=24)
-    status = models.CharField(max_length=80, default='live',null=True)
+    status = models.CharField(max_length=80, default='processing',null=True)
     previous_status = models.CharField(max_length=10, blank=True, null=True)
     # form_type = models.CharField(max_length=20, choices=[('draft', 'Draft'), ('completed', 'Completed')], default='draft')
     is_draft = models.BooleanField(default=False)
+    review = models.CharField(max_length=80, choices=car_status, default='processing')
     # Key Information
     variant = models.ForeignKey(CarVariant, on_delete=models.CASCADE, related_name='car_variant',null=True,blank=True)
     car_year = models.CharField(null=True,blank=True,max_length=50)
@@ -217,44 +224,44 @@ class CarDetails(models.Model):
     last_service_date = models.DateField(null=True, blank=True)
     vehicle_location = models.CharField(max_length=250, null=True, blank=True)
     # Interior
-    power_steering = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    cruise_control = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    navigation_system = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    adjustable_steering = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    steering_control = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    power_steering = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    cruise_control = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    navigation_system = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    adjustable_steering = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    steering_control = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
     air_conditioning = models.CharField(max_length=80,choices=power_window_type, null=True, blank=True)
     power_window = models.CharField(max_length=80,choices=power_window_type, null=True, blank=True)
     # Exteriors
-    alloy_wheel = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    sun_roof = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    alloy_wheel = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    sun_roof = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
     adjustable_orvm = models.CharField(max_length=80,choices=adjustable_orvms_type, null=True, blank=True)
     # Infotainment
-    bluetooth = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    am_fm_radio = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    usb_compatibility = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
-    aux_compatibility = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
-    android_car_play = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    wireless_charger = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    bluetooth = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    am_fm_radio = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    usb_compatibility = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
+    aux_compatibility = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
+    android_car_play = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    wireless_charger = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
     # safety
-    abs = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
-    ebd = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
-    anti_theft_device = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    rear_parking_camera = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    rear_parking_sensor = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    front_parking_camera = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    abs = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
+    ebd = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='Yes',null=True,blank=True)
+    anti_theft_device = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    rear_parking_camera = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    rear_parking_sensor = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    front_parking_camera = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
     lock_system = models.CharField(max_length=80, choices=lock_system_type, null=True, blank=True)
     total_air_bag = models.CharField(max_length=50,null=True, blank=True)
     # vehicle condition
     battery_status = models.CharField(max_length=80, choices=vehicle_condition_type, null=True, blank=True)
     tyre_condition = models.CharField(max_length=80, choices=vehicle_condition_type, null=True, blank=True)
-    vehicle_warranty = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    vehicle_warranty = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
     vehicle_warranty_date = models.DateField(null=True, blank=True)
-    accidental = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    accidental = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
     description = models.TextField(null=True, blank=True)
     # Additional Services to be offered
-    finance = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    exchange = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
-    extended_warranty = models.CharField(max_length=3, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    finance = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    exchange = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
+    extended_warranty = models.CharField(max_length=100, choices=YES_NO_CHOICES, default='No',null=True,blank=True)
 
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
@@ -287,6 +294,45 @@ class DraftCarDetails(CarDetails):
         return self.id
 
 
+
+
+class Lead(models.Model):
+    STATUS_CHOICES = [
+        ('cold', 'Cold'),
+        ('warm', 'Warm'),
+        ('hot', 'Hot'),
+    ]
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null= True, blank= True)
+    user_type = models.CharField(max_length=10, default='Customer')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='cold')
+    visit_time = models.DateTimeField(default=timezone.now)
+    page_stay_duration = models.IntegerField(default=0)  # Store duration in seconds
+    visit_count = models.IntegerField(default=0)  
+    made_enquiry = models.BooleanField(default=False)
+    viewed_car = models.ForeignKey(CarDetails, on_delete=models.CASCADE, related_name='car_detail', null= True, blank= True)
+    def __str__(self):
+        return f"{self.user.phone} - {self.status}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null= True, blank= True)  # Link to user
+    message = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    car =  models.ForeignKey(CarDetails, on_delete=models.CASCADE, related_name='schedule_car', null= True, blank= True)
+    source = models.CharField(max_length=255, null=True, blank=True)
+    class Meta:
+        unique_together = ('user', 'message')  # Ensure unique notifications per user/message/car combo
+        ordering = ['-created_at']  # Order notifications by most recent
+        
+    def __str__(self):
+        # Check if the car and its related fields are available before trying to access them
+        if self.car and self.car.variant and self.car.variant.model and self.car.variant.model.brand:
+            return f"Notification for {self.car.variant.model.brand.name} {self.car.variant.model.name} {self.car.variant.name} - {self.message}"
+        else:
+            # Provide a fallback message if any related field is missing
+            return f"Notification - {self.message}"
+
 class CarViews(models.Model):
     id = models.CharField(default=generate_unique_object_id, primary_key=True, max_length=24)
     car_id = models.ForeignKey(CarDetails, on_delete=models.CASCADE, related_name='car_view')
@@ -301,6 +347,10 @@ class CarViews(models.Model):
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 85c2756 (New Code)
 class WishlistCar(models.Model):
     id = models.CharField(default=generate_unique_object_id, primary_key=True, max_length=24)
     car_id = models.ForeignKey(CarDetails, on_delete=models.CASCADE, related_name='wishlist_car')
@@ -341,7 +391,7 @@ class Insurance(models.Model):
     insured_name = models.CharField(max_length=200)
     # user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING, related_name='insured_user')
     policy_no = models.CharField(max_length=80)
-    insurer_name = models.CharField(max_length=300)
+    insurer_name = models.CharField(max_length=10000)
     # insurance_date = models.DateField(null=True, blank=True)
     type = models.CharField(max_length=80, null=True, blank=True)
     product = models.CharField(max_length=80, null=True, blank=True)
@@ -398,7 +448,7 @@ class Warranty(models.Model):
     warranty_period =models.PositiveIntegerField()
     purchase_date = models.DateField()
     roadside_assistant_date = models.DateField(null=True, blank=True)
-    warranty_type = models.CharField(max_length=30,default='Comprehensive')
+    warranty_type = models.CharField(max_length=1000,default='Comprehensive')
 
     next_renewal_date = models.DateField(null=True, blank=True)
     car_model = models.ForeignKey(CarModel, on_delete=models.DO_NOTHING, related_name='warranty_car_model')

@@ -168,11 +168,11 @@
                             </button>
                         </div>
                     </div>
-                    <div id="error-message" style="color: red; display: none;">Passwords do not match!</div>
+                    <!--<div id="error-message" style="color: red; display: none;">Passwords do not match!</div>-->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" name="edit" value="edit_pass" id="submitButton" disabled>Submit</button>
+                    <button type="submit" class="btn btn-primary" name="edit" value="edit_pass" id="submitButton">Submit</button>
                 </div>
             </form>
         </div>
@@ -191,10 +191,16 @@
                 {% csrf_token %}
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label> Aadhar </label>
                             <input type="file" class="form-control" id="dealer_aadhar" name="dealer_aadhar" value="" accept="image/png, image/gif, image/jpeg">
                         </div>
                         <div class="mb-3">
+                            <label>PAN</label>
                             <input type="file" class="form-control" id="dealer_pan" name="dealer_pan" value="" accept="image/png, image/gif, image/jpeg">
+                        </div>
+                        <div class="mb-3">
+                            <label>GST</label>
+                            <input type="file" class="form-control" id="dealer_gst" name="dealer_gst" value="" accept="image/png, image/gif, image/jpeg">
                         </div>
                     </div>
                 </div>

@@ -99,7 +99,7 @@
                             </a>
                         </li>
                         <li class="nav-item waves-effect waves-light" role="presentation">
-                            <a class="nav-link" data-bs-toggle="tab" href="#rejected-cars" role="tab" aria-selected="false" tabindex="-1">
+                            <a class="nav-link" id="rejected-tab" data-bs-toggle="tab" href="#rejected-cars" role="tab" aria-selected="false" tabindex="-1">
                                 <span class="d-block d-sm-none"><i class="far fa-envelope"></i></span>
                                 <span class="d-none d-sm-block">Rejected</span>
                             </a>
@@ -248,7 +248,7 @@
                                                     <th class="align-middle">Car Name</th>
                                                     <th class="align-middle">Registration No.</th>
                                                     <th class="align-middle">Date</th>
-                                                    <th class="align-middle">Price</th>
+                                                    <th class="align-middle">Price(INR)</th>
                                                     <th class="align-middle">Status</th>
                                                     <th class="align-middle">View Details</th>
                                                     <th class="align-middle">Ad Booster</th>
@@ -268,7 +268,7 @@
                                                             {{car_detail.updated_at.date}}
                                                         </td>
                                                         <td>
-                                                            Rs{{car_detail.demand_price}}
+                                                            {{car_detail.demand_price}}
                                                         </td>
                                                         <td>
                                                             <span class="badge badge-pill badge-soft-success font-size-12">Live</span>
@@ -319,7 +319,7 @@
                                                     <th class="align-middle">Car Name</th>
                                                     <th class="align-middle">Registration No.</th>
                                                     <th class="align-middle">Date</th>
-                                                    <th class="align-middle">Price</th>
+                                                    <th class="align-middle">Price(INR)</th>
                                                     <th class="align-middle">Status</th>
                                                     <th class="align-middle">View Details</th>
                                                     <th class="align-middle">Action</th>
@@ -339,7 +339,7 @@
                                                             {{car_detail.created_at.date}}
                                                         </td>
                                                         <td>
-                                                            Rs{{car_detail.demand_price}}
+                                                            {{car_detail.demand_price}}
                                                         </td>
                                                         <td>
                                                             <span class="badge badge-pill badge-soft-danger font-size-12">Expired</span>
@@ -384,7 +384,7 @@
                                                     <th class="align-middle">Car Name</th>
                                                     <th class="align-middle">Registration No.</th>
                                                     <th class="align-middle">Date</th>
-                                                    <th class="align-middle">Price</th>
+                                                    <th class="align-middle">Price(INR)</th>
                                                     <th class="align-middle">Status</th>
                                                     <th class="align-middle">View Details</th>
                                                     <th class="align-middle">Edit</th>
@@ -403,7 +403,11 @@
                                                         <td>{{draft.updated_at.date}}</td>
                                                         <td class="price">{{draft.demand_price}}</td>
                                                         <td>
-                                                            <span class="badge badge-pill badge-soft-warning font-size-12">Processing</span>
+                                                            {% if draft.is_draft %}
+                                                                <span class="badge badge-pill badge-soft-warning font-size-12">Draft</span>
+                                                            {% else %}
+                                                                <span class="badge badge-pill badge-soft-success font-size-12">Processing</span>
+                                                            {% endif %}
                                                         </td>
                                                         
                                                         
@@ -414,9 +418,7 @@
                                                                 </button>
                                                              {% include 'Dealer/product/view-modal.html' with car_detail=draft car_images=draft.images %}
 
-                                                          <!--  <button data-bs-toggle="modal" data-bs-target="#viewModal"  data-draft-id="{{draft.id}}" class="btn btn-primary" >-->
-                                                          <!-- <i class="fa fa-eye"></i>-->
-                                                          <!--</button>-->
+                                                         
                                                           </td>
                                                         
                                                         <td><button type="submit" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#topModal{{draft.id}}" data-draft-id="{{draft.id}}" >
@@ -427,7 +429,7 @@
                                                         
                                                         {% include 'Dealer/product/draft-modal.html'  with draft=draft%}
                                                         <td>
-                                                            <form action="{% url 'dealer:markdelete' draft.id %}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this ad?');">
+                                                            <form action="{% url 'dealer:delete-ad' draft.id %}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this ad?');">
                                                                 {% csrf_token %}
                                                                 <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                                             </form>
@@ -452,7 +454,7 @@
                                                     <th class="align-middle">Car Name</th>
                                                     <th class="align-middle">Registration No.</th>
                                                     <th class="align-middle">Date</th>
-                                                    <th class="align-middle">Price</th>
+                                                    <th class="align-middle">Price(INR)</th>
                                                     <th class="align-middle">Status</th>
                                                     <th class="align-middle">View Details</th>
                                                     <th class="align-middle">Action</th>
@@ -471,7 +473,7 @@
                                                             {{car_detail.created_at.date}}
                                                         </td>
                                                         <td>
-                                                            Rs{{car_detail.demand_price}}
+                                                            {{car_detail.demand_price}}
                                                         </td>
                                                         <td>
                                                             <span class="badge badge-pill badge-soft-danger font-size-12">Sold</span>
@@ -520,7 +522,7 @@
                                                     <th class="align-middle">Registration No.</th>
                                                     <th class="align-middle">Date</th>
                                                     <th class="align-middle">Date of Deletion</th>
-                                                    <th class="align-middle">Price</th>
+                                                    <th class="align-middle">Price(INR)</th>
                                                     <th class="align-middle">Status</th>
                                                     <th class="align-middle">View Details</th>
                                                     <th class="align-middle">Action</th>
@@ -542,7 +544,7 @@
                                                             {{car_detail.deletion_date}}
                                                         </td>
                                                         <td>
-                                                            Rs{{car_detail.demand_price}}
+                                                            {{car_detail.demand_price}}
                                                         </td>
                                                         <td>
                                                             <span class="badge badge-pill badge-soft-danger font-size-12">Deleted</span>
@@ -586,7 +588,9 @@
                                         <table class="table align-middle table-nowrap table-check table-bordered">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th class="align-middle">User Name</th>
+                                                    <th class="align-middle">S.NO</th>
+                                                    <th class="align-middle">Car Name</th>
+                                                 
                                                     <th class="align-middle">Registration No.</th>
                                                     <th class="align-middle">Date</th>
                                                     <th class="align-middle">Price</th>
@@ -598,7 +602,10 @@
                                             </thead>
                                             <tbody>{% for car_detail in rejected %}
                                                 <tr>
-                                                    <td>{{car_detail.user}}</td>
+                                                   
+                                                        <td>{{forloop.counter}}</td>
+                                                        <td><a  class="text-body fw-bold">{{car_detail.variant.model.brand.name}}  {{car_detail.variant.model.name}}  {{car_detail.variant.name}}</a>
+                                                        </td>
                                                     <td>{{car_detail.registration_no}} </td>
                                                     <td>
                                                         07 Oct, 2019

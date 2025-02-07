@@ -197,11 +197,21 @@
                                     <div class="templating-select">
                                         <label for="car_variants">Car Brand</label>
                                         <select class="form-control select2-templating" data-live-search="true" name="car_brand" id="car_brand" required>
+                                                <option value="" selected disabled>---Select---</option>
                                                 {% for car_brand in car_brands %}
+                                                    
                                                     <option value="{{car_brand.id}}">{{car_brand.name}}</option>
                                                     <!--<option value="{{car_brand.id}}" {% if car_brand.id == car_brand.id %}selected{% endif %}>{{car_brand.name}}</option>-->
                                                 {% endfor %}
                                                           
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="templating-select">
+                                        <label for="car_variants">Car Model</label>
+                                        <select class="form-control select2-templating" data-live-search="true" name="car_model" id="car_model">
+                                            <option value="">---------</option>
                                         </select>
                                     </div>
                                 </div>
@@ -214,7 +224,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="car_year">Year</label>
+                                    <label for="car_year">Registration Year</label>
                                     <input name="car_year" id="car_year" class="form-control form_control" type="text"  placeholder="Year" required>
                                 </div>
                                 <div class="mb-3">
@@ -269,13 +279,6 @@
                                     </select>
                                 
                                 </div>
-
-                                <div class="mb-3">
-                                    <label for="engine_capacity">Engine Capacity</label>
-                                    <input id="engine_capacity" name="engine_capacity" type="text" class="form-control" placeholder="Engine Capacity">
-                                    
-                                    
-                                </div>
                                 
                             </div>
                                
@@ -285,16 +288,14 @@
 
                             <div class="col-sm-6">
                                 <div class="mb-3">
-                                    <div class="templating-select">
-                                        <label for="car_variants">Car Model</label>
-                                        <select class="form-control select2-templating" data-live-search="true" name="car_model" id="car_model">
-                                            <option value="">---------</option>
-                                        </select>
-                                    </div>
+                                    <label for="engine_capacity">Engine Capacity ( in CC )</label>
+                                    <input id="engine_capacity" name="engine_capacity" type="text" class="form-control" placeholder="Engine Capacity">
+                                    
+                                    
                                 </div>
                                 <div class="mb-3">
                                     <label for="insurance_type">Insurance Type</label>
-                                    <select name="insurance_type" id="insurance_type" class="form-control select2-templating" data-live-search="true">
+                                    <select name="insurance_type" id="insurance_type" class="form-control select2-templating" data-live-search="true" >
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="Zero Dep" >Zero Dep</option>
                                         <option value="Comprehensive">Comprehensive</option>
@@ -315,7 +316,7 @@
 
                                 <div class="mb-3">
                                     <label for="fitness_validity">Fitness Valid Till</label>
-                                    <input name="fitness_validity" id="fitness_validity" class="form-control form_control" type="date" placeholder="Capacity...">
+                                    <input name="fitness_validity" id="fitness_validity" class="form-control form_control" type="date" placeholder="Capacity..." disabled>
 
 <!--                                    <div class="input-group" id="datepicker2">-->
 <!--                                        <input type="text" class="form-control" placeholder="dd M, yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true">-->
@@ -658,6 +659,15 @@
                                         <option value="0">None</option>
                                     </select>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="adas"> Advance Driver Assistance System</label>
+                                    <select name="adas" id="adas" class="form-control select2-templating" data-live-search="true">
+                                        <option value="" selected  disabled>---Select---</option>
+                                        <option value="Yes"> Yes [Level 1]</option>
+                                        <option value="Yes"> Yes [Level 2]</option>
+                                        <option value="No"> No</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -710,19 +720,21 @@
 
                             <div class="col-sm-6">
                                 <div class="mb-3">
-                                    <label for="vehicle_certificate" onchange="selectedvalYes()">Vehicle Certification/ Company Warranty (If Any)</label>
-                                    <select name="vehicle_certificate" id="vehicle_certificate" class="form-control select2-templating" data-live-search="true">
+                                    <label for="vehicle_certificate">Vehicle Certification/ Company Warranty (If Any)</label>
+                                    <select name="vehicle_certificate" id="vehicle_certificate" class="form-control select2-templating" data-live-search="true" onchange="toggleInputField()">
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="Yes" >Yes</option>
                                         <option value="No">No</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="If Yes">If Yes</label>
+                                    <label for="if_yes">If Yes</label>
                                     <div class="input-group" id="datepicker2">
-                                        <input type="text" class="form-control" placeholder="dd MM yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true">
+                                        <input type="text" id="if_yes" class="form-control" placeholder="dd MM yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true" disabled>
+                                        <small id="error-message" style="color: red; display: none;">Kindly Fill the details</small>
                                     </div>
                                 </div>
+                                <!--<button type="submit" onclick="validateForm()">Submit</button>-->
                             </div>
                         </div>
                     </div>
@@ -742,7 +754,7 @@
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="mb-3">
-                                    <label for="finance">Finance</label>
+                                    <label for="finance">Finance Facility Available </label>
                                     <select name="finance" id="finance" class="form-control select2-templating" data-live-search="true">
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="Yes" >Yes</option>
@@ -750,7 +762,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="exchange">Exchange</label>
+                                    <label for="exchange">Exchange Facility Available </label>
                                     <select name="exchange" id="exchange" class="form-control select2-templating" data-live-search="true">
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="Yes" >Yes</option>
@@ -764,11 +776,17 @@
                             <div class="col-sm-6">
                                 <div class="mb-3">
                                     <label for="extended_warranty">Extended Warranty</label>
-                                    <select name="extended_warranty" id="extended_warranty" class="form-control select2-templating" data-live-search="true">
+                                    <select name="extended_warranty" id="extended_warranty" class="form-control select2-templating" data-live-search="true" onchange="toggleExtendedWarrantyDate()">
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="Yes" >Yes</option>
                                         <option value="No">No</option>
                                     </select>
+                                </div>
+                                <div class="mb-3" id="extended_warranty_date_container" style="display: none;">
+                                    <label for="extended_warranty_date">Extended Warranty Expiry Date</label>
+                                    <div class="input-group">
+                                        <input type="text" id="extended_warranty_date" class="form-control" placeholder="MM YYYY" data-date-format="MM yyyy" data-min-view-mode="months" data-provide="datepicker" data-date-autoclose="true">
+                                    </div>
                                 </div>
                             </div>
 
@@ -825,6 +843,14 @@
                 $(this).val(formatNumber(value));
             }
         });
+        
+        $('#total_km').on('input', function() {
+            let value = $(this).val().replace(/,/g, ''); // Remove existing commas
+            if (!isNaN(value) && value.length > 0) {
+                $(this).val(formatNumber(value));
+            }
+        });
+        
     });
 </script>
 
@@ -902,6 +928,47 @@
             }
         }
     });
+</script>
+<script>
+function toggleInputField() {
+    const dropdown = document.getElementById('vehicle_certificate');
+    const inputField = document.getElementById('if_yes');
+    const errorMessage = document.getElementById('error-message');
+
+    if (dropdown.value === "Yes") {
+        inputField.disabled = false;
+        inputField.required = true; // Make the date field required
+    } else {
+        inputField.disabled = true;
+        inputField.required = false;
+        errorMessage.style.display = "none"; // Hide error if "No" is selected
+    }
+}
+
+
+function toggleExtendedWarrantyDate() {
+    const dropdown = document.getElementById('extended_warranty');
+    const dateContainer = document.getElementById('extended_warranty_date_container');
+
+    if (dropdown.value === "Yes") {
+        dateContainer.style.display = "block";
+    } else {
+        dateContainer.style.display = "none";
+    }
+}
+
+// function toggleInsurance(){
+//     const dropdown = document.getElementById('insurance_type');
+//     const validity = document.getElementById('insurance_validity');
+//     if(dropdown.value === "Yes"){
+//         validity.disabled = false;
+//         validity.required = true;
+//     }else{
+//         validity.disabled = true;
+//         validity.required = false;
+//     }
+// }
+
 </script>
 
 {% endblock %}

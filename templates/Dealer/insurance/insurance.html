@@ -60,6 +60,12 @@
                                     </a>
                                 </li>
                                 <li class="nav-item waves-effect waves-light " role="presentation">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#live" role="tab" aria-selected="false" tabindex="-1">
+                                        <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
+                                        <span class="d-none d-sm-block">Current Insurance <span class="badge bg-success">{{live_count}}</span></span>
+                                    </a>
+                                </li>
+                                <li class="nav-item waves-effect waves-light " role="presentation">
                                     <a class="nav-link" data-bs-toggle="tab" href="#renewal" role="tab" aria-selected="false" tabindex="-1">
                                         <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
                                         <span class="d-none d-sm-block">Renewal Insurance <span class="badge bg-success">{{ renewal_count }}</span></span>
@@ -436,6 +442,91 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="tab-pane fade" id="live" role="tabpanel">
+                                        <div class="card">
+                                            <div class="card-body p-0">
+                                                <div class="table-responsive">
+                                                    <table
+                                                        class="table align-middle table-nowrap table-check table-bordered">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th class="align-middle">S No.</th>
+                                                                <th class="align-middle">Customer Number</th>
+                                                                <th class="align-middle">Insured Name</th>
+                                                                <th class="align-middle">Insurer Name</th>
+                                                                <th class="align-middle">Policy Number</th>
+                                                                <th class="align-middle">Risk Start Date</th>
+                                                                <th class="align-middle">Risk End Date</th>
+                                                                <th class="align-middle"> Reminder</th>
+                                                                <th class="align-middle">Policy Type</th>
+                                                                <th class="align-middle">Status</th>
+                                                                <th class="align-middle">Product</th>
+                                                                <th class="align-middle">Insurance Type</th>
+                                                                <th class="align-middle">IDV </th>
+                                                                <th class="align-middle">Total Premium</th>
+                                                                <th class="align-middle">Fuel Type</th>
+                                                                <th class="align-middle"> NCB </th>
+                                                                <th class="align-middle">Vehicle Brand</th>
+                                                                <th class="align-middle">Vehicle Model</th>
+                                                                <th class="align-middle">Vehicle Make</th>
+                                                                
+                                                                <th class="align-middle">RTO State</th>
+                                                                <th class="align-middle">City</th>
+                                                                <th class="align-middle">Action</th>
+                                                                
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% if current %}
+                                                            {% for insurance,expiry,reminder in current %}
+                                                            <tr data-id="{{insurance.id}}">
+                                                                <td>{{ forloop.counter}}</td>
+                                                                <td>{{ insurance.user_phone_no}}</td>
+                                                                <td>{{ insurance.insured_name}}</td>
+                                                                
+                                                                <td>{{ insurance.insurer_name}}</td>
+                                                                <td>{{ insurance.policy_no}}</td>
+                                                                <td>{{ insurance.risk_start_date}}</td>
+                                                                <td>{{ insurance.risk_end_date}}</td>
+                                                                
+                                                                <td>{{reminder}}</td>
+                                                                <td>{{ insurance.policy_type}}</td>
+                                                                <td>
+                                                                    <span class="badge badge-pill badge-soft-success font-size-12">Live</span>
+                                                                </td>
+                                                                <td>{{ insurance.product}}</td>
+                                                                <td>{{ insurance.type}}</td>
+                                                                <td>{{ insurance.idv}}</td>
+                        
+                                                                <td>{{ insurance.total_premium}}</td>
+                                                                <td>{{ insurance.fuel_type}}</td>
+                                                                <td>{{ insurance.ncb_status}}</td>
+                                                                <td>{{ insurance.car_model.brand.name}}</td>
+                                                                <td>{{ insurance.car_model.name}}</td>
+                                                                <td>{{ insurance.next_renewal_date}}</td>
+                                                                <td>{{ insurance.rto_state}}</td>
+                                                                <td>{{ insurance.city}}</td>
+                                                                <td>
+                                                                
+                                                                    <button class="btn btn-success btn-sm" onclick="resetModalForm()"
+                                                                data-bs-toggle="modal" data-bs-target="#renewModal{{insurance.id}}"><i class="fa fa-edit"></i>
+                                                                <span class="d-none d-sm-inline-block ">Renewal</span></button>
+                                                                 {% include 'Dealer/insurance/add_insurance_modal.html' with insurance=insurance %}
+                                                                </td>
+                                                    
+                                                            </tr>
+                                                            {% endfor %}
+                                                            {% else %}
+                                                                <tr>
+                                                                    <td colspan="4">No insurance available</td>
+                                                                </tr>
+                                                            {% endif %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                  <!-- renewal -->
                                     <div class="tab-pane fade" id="renewal" role="tabpanel">
                                         <div class="card">
@@ -472,8 +563,8 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {% if insurances_with_expiry %}
-                                                            {% for insurance,expiry,reminder in insurances_with_expiry %}
+                                                            {% if renewal %}
+                                                            {% for insurance,expiry,reminder in renewal %}
                                                             <tr data-id="{{insurance.id}}">
                                                                 <td>{{ forloop.counter}}</td>
                                                                 <td>{{ insurance.user_phone_no}}</td>
@@ -487,7 +578,7 @@
                                                                 <td>{{reminder}}</td>
                                                                 <td>{{ insurance.policy_type}}</td>
                                                                 <td>
-                                                                    <span class="badge badge-pill badge-soft-warning font-size-12">{{ insurance.status|title }}</span>
+                                                                    <span class="badge badge-pill badge-soft-warning font-size-12">Renew</span>
                                                                 </td>
                                                                 <td>{{ insurance.product}}</td>
                                                                 <td>{{ insurance.type}}</td>
@@ -576,7 +667,7 @@
                                                                     <td>{{reminder}}</td>
                                                                     <td>{{ insurance.policy_type}}</td>
                                                                     <td>
-                                                                        <span class="badge badge-pill badge-soft-danger font-size-12">{{ insurance.status|title }}</span>
+                                                                        <span class="badge badge-pill badge-soft-danger font-size-12">Expired</span>
                                                                     </td>
                                                                     <td>{{ insurance.product}}</td>
                                                                     <td>{{ insurance.type}}</td>
