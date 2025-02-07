@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+from storages.backends.s3boto3 import S3Boto3Storage
 
+load_dotenv("handler/.env")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks',
+    'storages',
 
 ]
 
@@ -158,11 +162,48 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'templates', 'Dealer', 'warranty'),   
 ]
-STATIC_ROOT = '/home/dreamcar/DCB_Project/staticfiles'
+# STATIC_ROOT = '/home/dreamcar/DCB_Project/staticfiles'
 
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/dreamcar/DCB_Project/media'
+# MEDIA_ROOT = '/home/dreamcar/DCB_Project/media'
+
+
+# AWS Credentials
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", default="AKIAWX2IFPV3N7FIVXF7")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", default="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")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", default="dcbmedia")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", default="ap-south-1") 
+
+# AWS Static Files Configuration
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+AWS_QUERYSTRING_AUTH = False  # Public access
+AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files
+
+# Keep local static directories for development
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "templates", "Dealer", "warranty"),
+]
+
+
+class StaticStorage(S3Boto3Storage):
+    location = "static"
+
+class MediaStorage(S3Boto3Storage):
+    location = "media"
+
+# Static Files (CSS, JS, Images)
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
+
+# Media Files (Uploaded User Content)
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
+
+
+
+
 
 
 # STATICFILES_DIRS = [
