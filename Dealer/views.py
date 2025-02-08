@@ -35,6 +35,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
 from UserManagement.views import *
+from datetime import datetime, date
+
 
 def share_this(request,car_id):
     # pass
@@ -679,6 +681,7 @@ def update_duration(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
     
 def update_lead_status(request,car):
+    print("Hit update_lead_status")
     post = get_object_or_404(CarDetails, id=car)
     owner = post.created_by
     group_list = request.user.groups.values_list('name', flat=True)
@@ -690,6 +693,7 @@ def update_lead_status(request,car):
         
         
         if action == 'contact_seller':
+            print("Contact Seller")
             lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'status': 'warm', 'user_type': group_list[0]})
             if not created:
                 lead.status = 'warm'
@@ -698,18 +702,28 @@ def update_lead_status(request,car):
             else:
                 lead.visit_count = 1
             lead.save()
+            lead.refresh_from_db()
             messages.success(request, 'Our Team may contact you soon !')
 
         elif action == 'schedule_test_drive':
+            print("Schedule Test Drive")
+            # Convert std_day from string to date
+            std_day_str = request.POST.get('std_day')
+            std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
+            
             lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'visit_time': day ,'status':'hot','user_type': group_list[0]})
             notification, notify = Notification.objects.get_or_create(user=request.user, car=post)
             # Only set the message once, no matter if the notification was created or fetched
-            if (day-today).days <= 2:
-                msg = f" Hurry {(day-today).days} Days left! {lead.user.get_full_name()} scheduled a test drive on {day} for {lead.viewed_car.variant.model.brand.name}{lead.viewed_car.variant.model.name}{lead.viewed_car.variant.name}"
-                notification.message = msg
-            else:
-                notification.message = f"{lead.user.get_full_name()} scheduled a test drive on {day} for {lead.viewed_car.variant.model.brand.name}{lead.viewed_car.variant.model.name}{lead.viewed_car.variant.name}"
             
+            if std_day:
+                days_left = (std_day - date.today()).days
+
+                if days_left <= 2:
+                    msg = f" Hurry {days_left} Days left! {lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
+                else:
+                    msg = f"{lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
+                    
+            notification.message = msg
             notification.save()
 
             if not created:
@@ -738,6 +752,8 @@ def follow_up_view(request):
     warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
     hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
     cars = CarDetails.objects.filter(created_by=request.user)
+    
+    print('cold_leads: ', cold_leads, ' warm_lards: ', warm_leads, ' hot_leads: ', hot_leads, ' cars: ', cars)
 
     # Create a list of cars with concatenated brand, model, and variant
     car_list = []
