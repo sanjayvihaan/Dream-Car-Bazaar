@@ -753,8 +753,6 @@ def follow_up_view(request):
     hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
     cars = CarDetails.objects.filter(created_by=request.user)
     
-    print('cold_leads: ', cold_leads, ' warm_lards: ', warm_leads, ' hot_leads: ', hot_leads, ' cars: ', cars)
-
     # Create a list of cars with concatenated brand, model, and variant
     car_list = []
     for car in cars:
