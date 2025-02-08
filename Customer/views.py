@@ -18,6 +18,7 @@ def my_vehicle(request):
 
 
 def car_detail(request, id):
+    print("Hitting car_details")
     user = request.user
     car_details = CarDetails.objects.filter(id=id).last()
     car_images = CarImage.objects.filter(car_detail=car_details, is_active=True)

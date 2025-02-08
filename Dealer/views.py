@@ -35,6 +35,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
 from UserManagement.views import *
+from datetime import datetime, date
+
 
 def share_this(request,car_id):
     # pass
@@ -641,7 +643,6 @@ def car_detail(request, id):
         user = request.user
         car_details = CarDetails.objects.get(id=id)
         car_images = CarImage.objects.filter(car_detail= car_details)
-        print('car_details = ', car_details.variant)
         car_brand = CarBrands.objects.filter(is_active=True)
         car_model = CarModel.objects.filter(is_active=True)
         car_variant = CarVariant.objects.filter(is_active=True)
@@ -674,7 +675,7 @@ def update_duration(request):
         lead.user_type = group_list[0]
         
         lead.save()
-
+        lead.refresh_from_db()
         return JsonResponse({'message': 'Duration updated'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
     
@@ -698,18 +699,27 @@ def update_lead_status(request,car):
             else:
                 lead.visit_count = 1
             lead.save()
+            lead.refresh_from_db()
             messages.success(request, 'Our Team may contact you soon !')
 
         elif action == 'schedule_test_drive':
+            # Convert std_day from string to date
+            std_day_str = request.POST.get('std_day')
+            std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
+            
             lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'visit_time': day ,'status':'hot','user_type': group_list[0]})
             notification, notify = Notification.objects.get_or_create(user=request.user, car=post)
             # Only set the message once, no matter if the notification was created or fetched
-            if (day-today).days <= 2:
-                msg = f" Hurry {(day-today).days} Days left! {lead.user.get_full_name()} scheduled a test drive on {day} for {lead.viewed_car.variant.model.brand.name}{lead.viewed_car.variant.model.name}{lead.viewed_car.variant.name}"
-                notification.message = msg
-            else:
-                notification.message = f"{lead.user.get_full_name()} scheduled a test drive on {day} for {lead.viewed_car.variant.model.brand.name}{lead.viewed_car.variant.model.name}{lead.viewed_car.variant.name}"
             
+            if std_day:
+                days_left = (std_day - date.today()).days
+
+                if days_left <= 2:
+                    msg = f" Hurry {days_left} Days left! {lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
+                else:
+                    msg = f"{lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
+                    
+            notification.message = msg
             notification.save()
 
             if not created:
@@ -738,7 +748,7 @@ def follow_up_view(request):
     warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
     hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
     cars = CarDetails.objects.filter(created_by=request.user)
-
+    
     # Create a list of cars with concatenated brand, model, and variant
     car_list = []
     for car in cars:
@@ -882,8 +892,6 @@ def customer_car(request):
         else:
             all_car_detail = CarDetails.objects.filter(is_active=True).exclude(created_by=user).annotate(car_image=Subquery(car_image)).order_by('-created_at')
 
-        print('all_car_detail = ', all_car_detail)
-
         if 'Dealer' in group_list:
             return render(request, "Dealer/product/customer_car.html", {'all_car_detail': all_car_detail})
         else:
@@ -951,7 +959,6 @@ def dealer_dashboard(request):
     # views.py
     notifications = Notification.objects.filter(car__created_by=user ,is_read=False).order_by('-created_at')
 
-    # print('car_details = ', car_details.variant)
     return render(request, "Dealer/dashboard/dashboard.html", {'user': user, 'total_car': total_car, 'notifications':notifications})
 
 def expired_insurances(request):

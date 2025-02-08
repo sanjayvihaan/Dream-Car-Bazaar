@@ -184,6 +184,10 @@
                                 
                                 <div class="row">
                                 {% for lead in cold_leads %}
+                                    <script>
+                                        let c_lead = "{{ lead }}"
+                                        console.log("Cold Lead: ", c_lead)
+                                    </script>
                                     <div class="col-xl-3 col-md-6">
                                         <div class="card m-2">
                                             <div class="card-body" style="box-shadow: 0 0 5px #ececec;border-radius: 5px;">
@@ -310,6 +314,10 @@
 
                                 <div class="row">
                                     {% for lead in hot_leads %}
+                                        <script>
+                                            let p_lead = "{{ lead }}"
+                                            console.log('Hot lead: ', p_lead)
+                                        </script>
                                         <div class="col-xl-3 col-md-6">
                                             <div class="card m-2">
                                                 <div class="card-body" style="box-shadow: 0 0 5px #ececec;border-radius: 5px;">
