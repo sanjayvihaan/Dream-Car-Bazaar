@@ -676,7 +676,7 @@ def update_duration(request):
         lead.user_type = group_list[0]
         
         lead.save()
-
+        lead.refresh_from_db()
         return JsonResponse({'message': 'Duration updated'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
     
