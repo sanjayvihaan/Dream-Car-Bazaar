@@ -744,9 +744,16 @@ def update_lead_status(request,car):
   
 
 def follow_up_view(request):
+    selected_status = request.GET.get('status', 'all')
     cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
     warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
     hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
+
+    if selected_status == 'all':
+        all_leads = Lead.objects.filter(viewed_car__created_by=request.user)
+    else:
+        all_leads = None
+
     cars = CarDetails.objects.filter(created_by=request.user)
     
     # Create a list of cars with concatenated brand, model, and variant
@@ -788,21 +795,32 @@ def follow_up_view(request):
                 Q(viewed_car__variant__model__name=model_name) &
                 Q(viewed_car__variant__name=variant_name)
             )
-    
+
+            if selected_status == 'all':
+                all_leads = all_leads.filter(
+                    Q(viewed_car__variant__model__brand__name=brand_name) &
+                    Q(viewed_car__variant__model__name=model_name) &
+                    Q(viewed_car__variant__name=variant_name)
+                )
+
     # If no car is selected or 'all' is selected, show all leads.
     else:
         cars = CarDetails.objects.filter(created_by=request.user)
         cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
         warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
         hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
-    
+
+        if selected_status == 'all':
+            all_leads = Lead.objects.filter(viewed_car__created_by=request.user)    
 
     context = {
         'cold_leads': cold_leads,
         'warm_leads': warm_leads,
         'hot_leads': hot_leads,
+        'all_leads': all_leads,
         'cars': car_list,  # Pass the modified car list to the template
         'selected_car': selected_car,
+        'selected_status': selected_status
     }
     return render(request, 'Dealer/followup/followup.html', context)
 
