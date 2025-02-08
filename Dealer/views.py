@@ -643,7 +643,6 @@ def car_detail(request, id):
         user = request.user
         car_details = CarDetails.objects.get(id=id)
         car_images = CarImage.objects.filter(car_detail= car_details)
-        print('car_details = ', car_details.variant)
         car_brand = CarBrands.objects.filter(is_active=True)
         car_model = CarModel.objects.filter(is_active=True)
         car_variant = CarVariant.objects.filter(is_active=True)
@@ -681,7 +680,6 @@ def update_duration(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
     
 def update_lead_status(request,car):
-    print("Hit update_lead_status")
     post = get_object_or_404(CarDetails, id=car)
     owner = post.created_by
     group_list = request.user.groups.values_list('name', flat=True)
@@ -693,7 +691,6 @@ def update_lead_status(request,car):
         
         
         if action == 'contact_seller':
-            print("Contact Seller")
             lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'status': 'warm', 'user_type': group_list[0]})
             if not created:
                 lead.status = 'warm'
@@ -706,7 +703,6 @@ def update_lead_status(request,car):
             messages.success(request, 'Our Team may contact you soon !')
 
         elif action == 'schedule_test_drive':
-            print("Schedule Test Drive")
             # Convert std_day from string to date
             std_day_str = request.POST.get('std_day')
             std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
@@ -896,8 +892,6 @@ def customer_car(request):
         else:
             all_car_detail = CarDetails.objects.filter(is_active=True).exclude(created_by=user).annotate(car_image=Subquery(car_image)).order_by('-created_at')
 
-        print('all_car_detail = ', all_car_detail)
-
         if 'Dealer' in group_list:
             return render(request, "Dealer/product/customer_car.html", {'all_car_detail': all_car_detail})
         else:
@@ -965,7 +959,6 @@ def dealer_dashboard(request):
     # views.py
     notifications = Notification.objects.filter(car__created_by=user ,is_read=False).order_by('-created_at')
 
-    # print('car_details = ', car_details.variant)
     return render(request, "Dealer/dashboard/dashboard.html", {'user': user, 'total_car': total_car, 'notifications':notifications})
 
 def expired_insurances(request):
