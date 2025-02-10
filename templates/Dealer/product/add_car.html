@@ -123,136 +123,219 @@
             font-weight: bold;
         }
 
+        /* tabs section styles */
+        .tab-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 1px;
+
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0 15px;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .circle {
+            width: 32px;
+            height: 23px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: normal;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .label {
+            font-size: 11px;
+            font-weight: normal;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .active .circle {
+            background: #6c63ff; /* Purple */
+            color: #ddd; 
+        }
+
+        .active .label {
+            font-weight: normal;
+            color: black;
+        }
+
+        .tab-section .step.active {
+            color: #6c63ff; 
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;  
+        }
+
+        .invalid {
+            border: 1px solid red; 
+        }
+
+
+
     </style>
 
     <!-- Flatpickr Styles -->
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css" rel="stylesheet">
-{% endblock %}
 
-{% block body %}
- <!-- start page title -->
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0 font-size-18">Add New Car</h4>
-            </div>
+    {% endblock %}
+
+    {% block body %}
+
+    <div class="tab-section">
+        <div class="step active" id="step1">
+            <span class="circle">1</span>
+            <span class="label">Upload Image</span>
+        </div>
+        <div class="step" id="step2">
+            <span class="circle">2</span>
+            <span class="label">Key Information</span>
+        </div>
+        <div class="step" id="step3">
+            <span class="circle">3</span>
+            <span class="label">Interior & Exterior</span>
+        </div>
+        <div class="step" id="step4">
+            <span class="circle">4</span>
+            <span class="label">Infotainment</span>
+        </div>
+        <div class="step" id="step5">
+            <span class="circle">5</span>
+            <span class="label">Safety</span>
+        </div>
+        <div class="step" id="step6">
+            <span class="circle">6</span>
+            <span class="label">Vehicle Condition</span>
+        </div>
+        <div class="step" id="step7">
+            <span class="circle">7</span>
+            <span class="label">Additional Services</span>
         </div>
     </div>
-    <!-- end page title -->
-    <form method="post" action="{% url 'save_car' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-            <!-- Hidden field to check whether it’s a draft (resumed form) or a fresh entry -->
-        
-            <input type="hidden" name="car_id" value="{{ car.id }}">
-        
-        <!--..............Add Images....................-->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title mb-4">Key Information</h4>
-                        <div class="row">
-                            <div id="photo-container">
-                                <!-- Uploaded photos will be appended here -->
-                            </div>
-                            <div class="col-lg-12">
-                                <div style="background-color: #fff; border: 1px solid #EAEAEA; border-radius: 8px; margin-bottom: 30px; padding: 30px; position: relative;">
-                                    <div class="upload__box">
-                                        <div class="upload__btn-box">
-                                            <label class="upload__btn">
-                                                <p>Upload images</p>
-                                                <input type="file" multiple="" data-max_length="20" class="upload__inputfile" name="car_images">
-                                            </label>
-                                        </div>
-                                        <div class="upload__img-wrap"></div>
+
+    <div class="container">
+        <div class="form-step active" id="step-1">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                        <h4 class="mb-sm-0 font-size-18">Add New Car</h4>
+                    </div>
+                </div>
+            </div>
+    
+            <form method="post" action="{% url 'save_car' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <input type="hidden" name="car_id" value="{{ car.id }}">
+                
+                <!-- Step 1: Image Upload -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">Upload Car Images</h4>
+                                <div class="row">
+                                    <div id="photo-container">
+                                        <!-- Uploaded photos will be appended here -->
                                     </div>
-                            
-                                    <!-- Hidden delete button, initially invisible -->
-                                    <button id="delete-selected" class="btn btn-sm btn-danger" style="display:none;"><i class="fa fa-trash"></i></button>
-                            
-                                    <!-- Error Message -->
-                                    <div id="error-message" style="color: red; display: none;"></div>
+                                    <div class="col-lg-12">
+                                        <div style="background-color: #fff; border: 1px solid #EAEAEA; border-radius: 8px; margin-bottom: 30px; padding: 30px;">
+                                            <div class="upload__box">
+                                                <div class="upload__btn-box">
+                                                    <label class="upload__btn">
+                                                        <p>Upload images</p>
+                                                        <input type="file" multiple="" data-max_length="20" class="upload__inputfile" name="car_images">
+                                                    </label>
+                                                </div>
+                                                <div class="upload__img-wrap"></div>
+                                            </div>
+    
+                                            <!-- Hidden delete button -->
+                                            <button id="delete-selected" class="btn btn-sm btn-danger" style="display:none;">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+    
+                                            <!-- Error Message -->
+                                            <div id="error-message" style="color: red; display: none;"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- end card -->
                     </div>
                 </div>
-                <!-- end card-->
-            </div>
+    
+                <!-- Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary" onclick="nextStep(1)">Submit</button>
+                </div>
+            </form>
         </div>
+    </div>
+    
         <!-- ..........................................Key Information .....................................-->
-        <div class="row">
-            <div class="col-12">
+            <div class="form-step active" id="step-2">
                 <div class="card">
                     <div class="card-body">
-
                         <h4 class="card-title mb-4">Key Information</h4>
-
-
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="mb-3">
-                                    <div class="templating-select">
-                                        <label for="car_variants">Car Brand</label>
-                                        <select class="form-control select2-templating" data-live-search="true" name="car_brand" id="car_brand" required>
-                                                <option value="" selected disabled>---Select---</option>
-                                                {% for car_brand in car_brands %}
-                                                    
-                                                    <option value="{{car_brand.id}}">{{car_brand.name}}</option>
-                                                    <!--<option value="{{car_brand.id}}" {% if car_brand.id == car_brand.id %}selected{% endif %}>{{car_brand.name}}</option>-->
-                                                {% endfor %}
-                                                          
-                                        </select>
-                                    </div>
+                                    <label for="car_brand">Car Brand</label>
+                                    <select class="form-control select2-templating" name="car_brand" id="car_brand" required>
+                                        {% for car_brand in car_brands %}
+                                            <option value="{{car_brand.id}}">{{car_brand.name}}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                                 <div class="mb-3">
-                                    <div class="templating-select">
-                                        <label for="car_variants">Car Model</label>
-                                        <select class="form-control select2-templating" data-live-search="true" name="car_model" id="car_model">
-                                            <option value="">---------</option>
-                                        </select>
-                                    </div>
+                                    <label for="car_variants">Car Variants</label>
+                                    <select class="form-control select2-templating" name="car_variants" id="car_variants" required>
+                                        <option value="">---------</option>
+                                    </select>
                                 </div>
                                 <div class="mb-3">
-                                    <div class="templating-select">
-                                        <label for="car_variants">Car Variants</label>
-                                        <select class="form-control select2-templating" data-live-search="true" name="car_variants" id="car_variants" required>
-                                            <option value="">---------</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="car_year">Registration Year</label>
-                                    <input name="car_year" id="car_year" class="form-control form_control" type="text"  placeholder="Year" required>
+                                    <label for="car_year">Year</label>
+                                    <input name="car_year" id="car_year" class="form-control" type="text" placeholder="Year" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="ownership">Ownership</label>
-                                    <select class="form-control select2-templating" data-live-search="true" name="ownership" id="ownership" required>
+                                    <select class="form-control select2-templating" name="ownership" id="ownership" required>
                                         <option value="" selected disabled>---Select---</option>
-                                        <option value="1st Owner" >1st Owner</option>
+                                        <option value="1st Owner">1st Owner</option>
                                         <option value="2nd Owner">2nd Owner</option>
                                         <option value="3rd Owner">3rd Owner</option>
                                         <option value="4th Owner">4th Owner</option>
                                     </select>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="total_km">Total Km Driven</label>
-                                    <input id="total_km" name="total_km" type="text" class="form-control" placeholder="Total Km Driven.." value="{{ car_details.total_km_driven|default:'' }}" required>
+                                    <input id="total_km" name="total_km" type="text" class="form-control" placeholder="Total Km Driven.." required>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="car_color">Car Colour</label>
-                                    <input id="car_color" name="car_color" type="text" class="form-control" placeholder="Car Colour...." value="{{ car_details.color|default:'' }}">
+                                    <input id="car_color" name="car_color" type="text" class="form-control" placeholder="Car Colour....">
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="fuel_type">Fuel Type</label>
-                                    <select class="form-control select2-templating" data-live-search="true" name="fuel_type" id="fuel_type">
+                                    <select class="form-control select2-templating" name="fuel_type" id="fuel_type">
                                         <option value="" selected disabled>---Select---</option>
-                                        <option value="CNG" >CNG</option>
+                                        <option value="CNG">CNG</option>
                                         <option value="Hybrid">Hybrid</option>
                                         <option value="Diesel">Diesel</option>
                                         <option value="Petrol">Petrol</option>
@@ -260,555 +343,459 @@
                                         <option value="LPG">LPG</option>
                                     </select>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="car_transmission">Transmission</label>
-                                    <select name="car_transmission" id="car_transmission" class="form-control select2-templating" data-live-search="true">
+                                    <select name="car_transmission" id="car_transmission" class="form-control select2-templating">
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="Manual">Manual</option>
                                         <option value="Automatic">Automatic</option>
-                                </select>
+                                    </select>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="total_keys">Total No. of Keys</label>
-                                    <select name="total_keys" id="total_keys" class="form-control select2-templating" data-live-search="true">
+                                    <select name="total_keys" id="total_keys" class="form-control select2-templating">
                                         <option value="" selected disabled>---Select---</option>
-                                        <option value="1">1 keys</option>
+                                        <option value="1">1 key</option>
                                         <option value="2">2 keys</option>
                                     </select>
-                                
                                 </div>
-                                
+                                <div class="mb-3">
+                                    <label for="engine_capacity">Engine Capacity</label>
+                                    <input id="engine_capacity" name="engine_capacity" type="text" class="form-control" placeholder="Engine Capacity">
+                                </div>
                             </div>
-                               
-                            
-
-
-
+        
                             <div class="col-sm-6">
                                 <div class="mb-3">
-                                    <label for="engine_capacity">Engine Capacity ( in CC )</label>
-                                    <input id="engine_capacity" name="engine_capacity" type="text" class="form-control" placeholder="Engine Capacity">
-                                    
-                                    
+                                    <label for="car_model">Car Model</label>
+                                    <select class="form-control select2-templating" name="car_model" id="car_model">
+                                        <option value="">---------</option>
+                                    </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="insurance_type">Insurance Type</label>
-                                    <select name="insurance_type" id="insurance_type" class="form-control select2-templating" data-live-search="true" >
+                                    <select name="insurance_type" id="insurance_type" class="form-control select2-templating">
                                         <option value="" selected disabled>---Select---</option>
-                                        <option value="Zero Dep" >Zero Dep</option>
+                                        <option value="Zero Dep">Zero Dep</option>
                                         <option value="Comprehensive">Comprehensive</option>
-                                        <option value="Third Party" >Third Party</option>
+                                        <option value="Third Party">Third Party</option>
                                         <option value="No Insurance">No Insurance</option>
                                     </select>
                                 </div>
-
-
                                 <div class="mb-3">
                                     <label for="insurance_validity">Insurance Valid Till</label>
-                                    <input name="insurance_validity" id="insurance_validity" class="form-control form_control" type="date" placeholder="valid..." >
-
-<!--                                    <div class="input-group" id="datepicker2">-->
-<!--                                        <input type="text" class="form-control" placeholder="dd M, yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true">-->
-<!--                                    </div>-->
+                                    <input name="insurance_validity" id="insurance_validity" class="form-control" type="date">
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="fitness_validity">Fitness Valid Till</label>
-                                    <input name="fitness_validity" id="fitness_validity" class="form-control form_control" type="date" placeholder="Capacity..." disabled>
-
-<!--                                    <div class="input-group" id="datepicker2">-->
-<!--                                        <input type="text" class="form-control" placeholder="dd M, yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true">-->
-<!--                                    </div>-->
+                                    <input name="fitness_validity" id="fitness_validity" class="form-control" type="date">
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="pollution_validity">Pollution Valid Till</label>
-                                    <input name="pollution_validity" id="pollution_validity" class="form-control form_control" type="date" placeholder="Capacity..." >
-
-<!--                                    <div class="input-group" id="datepicker2">-->
-<!--                                        <input type="text" class="form-control" placeholder="dd M, yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true">-->
-<!--                                    </div>-->
+                                    <input name="pollution_validity" id="pollution_validity" class="form-control" type="date">
                                 </div>
-
                                 <div class="mb-3">
-                                    <label for="registration place">Registration Place</label>
+                                    <label for="registration_place">Registration Place</label>
                                     <input id="registration_place" name="registration_place" type="text" class="form-control" placeholder="Registration place...">
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="registration_no">Registration Number</label>
                                     <input id="registration_no" name="registration_no" type="text" class="form-control" placeholder="Registration number...">
                                 </div>
-
-
                                 <div class="mb-3">
                                     <label for="demand_price">Demand Pricing</label>
                                     <input id="demand_price" name="demand_price" type="text" class="form-control" placeholder="Demand Pricing...">
                                 </div>
-                                
                                 <div class="mb-3">
-                                    <label for="last_service" class="form-label">Last Service</label>
-                                <input type="date" class="form-control" id="last_service" name="last_service" >
+                                    <label for="last_service">Last Service</label>
+                                    <input type="date" class="form-control" id="last_service" name="last_service">
                                 </div>
                                 <div class="mb-3">
-                                <label for="vehicle_loc" class="form-label">Location of Vehicle</label>
+                                    <label for="vehicle_location">Location of Vehicle</label>
                                     <input type="text" class="form-control" id="vehicle_location" name="vehicle_location">
                                 </div>
                             </div>
-
-                            <!--<h4 class="card-title mb-3 mt-3">Car Images</h4>-->
-                            <!--<div style="margin-bottom: 80px;">-->
-                            <!--    <span class="btn fileinput-button">-->
-                            <!--<span>Drop or Click here to upload car images</span>-->
-                            <!--    <input type="file" name="files[]" id="files" multiple accept="image/jpeg, image/png, image/gif,">-->
-                            <!--    <output id="Filelist"></output>-->
-                            <!--    </span>-->
-                            <!--</div>-->
                         </div>
-
+        
+                        <!-- Buttons -->
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-primary" onclick="prevStep(2)">Previous</button>
+                            <button type="button" class="btn btn-primary" onclick="nextStep(2)">Submit</button>
+                        </div>
                     </div>
                 </div>
-                <!-- end card-->
+            </div>
+        
+        <!-- Step 3: Interior & Exterior Features content -->
+<div class="form-step" id="step-3">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Interior and Exterior Features</h4>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="power_steering">Power Steering</label>
+                        <select name="power_steering" id="power_steering" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cruise_control">Cruise Control</label>
+                        <select name="cruise_control" id="cruise_control" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="navigation_system">Navigation System</label>
+                        <select name="navigation_system" id="navigation_system" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adjustable_steering">Adjustable Steering</label>
+                        <select name="adjustable_steering" id="adjustable_steering" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adjustable_orvm">Adjustable ORVMs</label>
+                        <select name="adjustable_orvm" id="adjustable_orvm" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Electrically Adjustable">Electrically Adjustable</option>
+                            <option value="Manually Adjustable">Manually Adjustable</option>
+                        </select>
+                    </div>
+                </div>
 
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="steering_control">Steering Control</label>
+                        <select name="steering_control" id="steering_control" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="air_conditioning">Air Conditioning</label>
+                        <select name="air_conditioning" id="air_conditioning" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Automatic Air Control">Automatic Air Control</option>
+                            <option value="Manual Control">Manual Control</option>
+                            <option value="With Heater">With Heater</option>
+                            <option value="Without Heater">Without Heater</option>
+                            <option value="No AC">No AC</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="power_window">Power Window</label>
+                        <select name="power_window" id="power_window" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Front Window Only">Front Window Only</option>
+                            <option value="All Four Power Windows">All Four Power Windows</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="alloy_wheel">Alloy Wheel</label>
+                        <select name="alloy_wheel" id="alloy_wheel" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sun_roof">Sun Roof</label>
+                        <select name="sun_roof" id="sun_roof" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary" onclick="prevStep(3)">Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep(3)">Submit</button>
             </div>
         </div>
-        <!-- end row -->
+    </div>
+</div>
 
-        <!-- ..................................Comfort feature....................................... -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
+        <!-- Step 4: Infotainment Features content -->
+<div class="form-step" id="step-4">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Infotainment Features</h4>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="bluetooth">Bluetooth</label>
+                        <select name="bluetooth" id="bluetooth" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="am_radio">AM/FM Radio</label>
+                        <select name="am_radio" id="am_radio" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="usb_compatibility">USB Compatibility</label>
+                        <select name="usb_compatibility" id="usb_compatibility" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
 
-                        <h4 class="card-title mb-4">Interior and Exterior Features</h4>
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="aux_compatibility">AUX Compatibility</label>
+                        <select name="aux_compatibility" id="aux_compatibility" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="android_car_play">Android Auto/ Apple Car Play</label>
+                        <select name="android_car_play" id="android_car_play" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="wireless_charger">Wireless Charger</label>
+                        <select name="wireless_charger" id="wireless_charger" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary" onclick="prevStep(4)">Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep(4)">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <!-- Step 5: Safety Features content -->
+<div class="form-step" id="step-5">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Safety Features</h4>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="abs">ABS</label>
+                        <select id="abs" name="abs" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ebd">EBD</label>
+                        <select name="ebd" id="ebd" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="anti_theft_device">Anti-Theft Device</label>
+                        <select name="anti_theft_device" id="anti_theft_device" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rear_parking_camera">Rear Parking Camera</label>
+                        <select name="rear_parking_camera" id="rear_parking_camera" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="power_steering">Power Steering</label>
-                                    <select name="power_steering" id="power_steering" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                        <!--{% for value, display in yes_no_options %}-->
-                                        <!--<option value="{{ value }}" {% if value == car.power_steering %}selected{% endif %}>{{ display }}</option>-->
-                                        <!--{% endfor %}-->
-                                    </select>
-                                </div>
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="rear_parking_sensor">Rear Parking Sensors</label>
+                        <select name="rear_parking_sensor" id="rear_parking_sensor" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lock_sensor">Lock System</label>
+                        <select name="lock_sensor" id="lock_sensor" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Central Locking">Central Locking</option>
+                            <option value="Remote Control Central Locking">Remote Control Central Locking</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="total_air_bag">No of Air Bags</label>
+                        <select name="total_air_bag" id="total_air_bag" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="1">1 Bag</option>
+                            <option value="2">2 Bags</option>
+                            <option value="4">4 Bags</option>
+                            <option value="6">6 Bags</option>
+                            <option value="8">8 Bags</option>
+                            <option value="10">10 Bags</option>
+                            <option value="0">None</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary" onclick="prevStep(5)">Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep(5)">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <!-- Step 6: Vehicle Condition content -->
+<div class="form-step" id="step-6">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Vehicle Condition</h4>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="battery_status">Battery Status</label>
+                        <select name="battery_status" id="battery_status" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="New">New</option>
+                            <option value="Old">Old</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tyre_condition">Tyre Condition</label>
+                        <select name="tyre_condition" id="tyre_condition" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="New">New</option>
+                            <option value="Old">Old</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="accidental">Accidental</label>
+                        <select name="accidental" id="accidental" class="form-control select2-templating">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
 
-                                <div class="mb-3">
-                                    <label for="cruise_control">Cruise Control</label>
-                                    <select name="cruise_control" id="cruise_control" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="vehicle_certificate">Vehicle Certification/ Company Warranty (If Any)</label>
+                        <select name="vehicle_certificate" id="vehicle_certificate" class="form-control select2-templating" onchange="selectedvalYes()">
+                            <option value="" selected disabled>---Select---</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="If Yes">If Yes</label>
+                        <div class="input-group" id="datepicker2">
+                            <input type="text" class="form-control" placeholder="dd MM yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                                <div class="mb-3">
-                                    <label for="navigation_system">Navigation System</label>
-                                    <select name="navigation_system" id="navigation_system" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="adjustable_steering">Adjustable Steering</label>
-                                    <select name="adjustable_steering" id="adjustable_steering" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="adjustable_orvm">Adjustable ORVMs</label>
-                                    <select name="adjustable_orvm" id="adjustable_orvm" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Electrically Adjustable" >Electrically Adjustable</option>
-                                        <option value="Manually Adjustable">Manually Adjustable</option>
-                                    </select>
-                                </div>
+            <!-- Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary" onclick="prevStep(6)">Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep(6)">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+ 
+        <!-- Step 7: Additional Service content -->
+<div class="form-step" id="step-7">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Additional Services</h4>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label for="finance">Finance</label>
+                                <select name="finance" id="finance" class="form-control select2-templating" data-live-search="true">
+                                    <option value="" selected disabled>---Select---</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
                             </div>
-
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="steering_control">Steering Control</label>
-                                    <select name="steering_control" id="steering_control" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-
-                                <div class="mb-3">
-                                    <label for="air_conditioning">Air Conditioning</label>
-                                    <select name="air_conditioning" id="air_conditioning" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Automatic Air Control" >Automatic Air Control</option>
-                                        <option value="Manual Control">Manual Control</option>
-                                        <option value="With Heater" >With Heater</option>
-                                        <option value="Without Heater">Without Heater</option>
-                                        <option value="No Ac">No Ac</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="power_window">Power Window</label>
-                                    <select name="power_window" id="power_window" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Front Window Only" >Front Window Only</option>
-                                        <option value="All Four Power Window">All Four Power Window</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="alloy_wheel">Alloy Wheel</label>
-                                    <select name="alloy_wheel" id="alloy_wheel" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="sun_roof">Sun Roof</label>
-                                    <select name="sun_roof" id="sun_roof" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
+                            <div class="mb-3">
+                                <label for="exchange">Exchange</label>
+                                <select name="exchange" id="exchange" class="form-control select2-templating" data-live-search="true">
+                                    <option value="" selected disabled>---Select---</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
                             </div>
                         </div>
 
-                    </div>
-                </div>
-                <!-- end card-->
-
-            </div>
-        </div>
-        <!-- ....................................End Row............................................ -->
-
-
-        <!-- .....................................Infotainment ..........................................-->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-
-                        <h4 class="card-title mb-4">Infotainment Features</h4>
-
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="bluetooth">Bluetooth</label>
-                                    <select name="bluetooth" id="bluetooth" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-
-                                <div class="mb-3">
-                                    <label for="am_radio">AM/FM Radio</label>
-                                    <select name="am_radio" id="am_radio" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="usb_compatibility">USB Compatibility</label>
-                                    <select name="usb_compatibility" id="usb_compatibility" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="aux_compatibility">AUX Compatibility</label>
-                                    <select name="aux_compatibility" id="aux_compatibility" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-
-                                <div class="mb-3">
-                                    <label for="android_car_play">Android Auto/ Apple Car Play</label>
-                                    <select name="android_car_play" id="android_car_play" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="wireless_charger">Wireless Charger</label>
-                                    <select name="wireless_charger" id="wireless_charger" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label for="extended_warranty">Extended Warranty</label>
+                                <select name="extended_warranty" id="extended_warranty" class="form-control select2-templating" data-live-search="true">
+                                    <option value="" selected disabled>---Select---</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
                             </div>
                         </div>
 
-                    </div>
-                </div>
-                <!-- end card-->
-
-            </div>
-        </div>
-        <!-- ......................................End Row............................................ -->
-
-
-        <!-- .....................................Safety ..........................................-->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-
-                        <h4 class="card-title mb-4">Safety Features</h4>
-
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="abs">ABS</label>
-                                    <select id="abs" name="abs" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-
-                                <div class="mb-3">
-                                    <label for="ebd">EBD</label>
-                                    <select name="ebd" id="ebd" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="anti_theft_device">Anti-Theft Device</label>
-                                    <select name="anti_theft_device" id="anti_theft_device" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="rear_parking_camera">Rear Parking Camera</label>
-                                    <select name="rear_parking_camera" id="rear_parking_camera" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                            </div>
-
-
-
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="rear_parking_sensor">Rear Parking Sensors</label>
-                                    <select name="rear_parking_sensor" id="rear_parking_sensor" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="lock_sensor">Lock System</label>
-                                    <select name="lock_sensor" id="lock_sensor" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Central Locking" >Central Locking</option>
-                                        <option value="Remote Control Central Locking">Remote Control Central Locking</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="total_air_bag">No of Air Bags</label>
-                                    <select name="total_air_bag" id="total_air_bag" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="1" >1 Bags</option>
-                                        <option value="2" >2 Bags</option>
-                                        <option value="4" >4 Bags</option>
-                                        <option value="6" >6 Bags</option>
-                                        <option value="8" >8 Bags</option>
-                                        <option value="10" >10 Bags</option>
-                                        <option value="0">None</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="adas"> Advance Driver Assistance System</label>
-                                    <select name="adas" id="adas" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected  disabled>---Select---</option>
-                                        <option value="Yes"> Yes [Level 1]</option>
-                                        <option value="Yes"> Yes [Level 2]</option>
-                                        <option value="No"> No</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <!-- end card-->
-
-            </div>
-        </div>
-        <!-- ......................................End Row............................................ -->
-
-
-        <!-- ......................................Vehicle Condition...................................... -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title mb-4">Vehicle Condition</h4>
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="battery_status">Battery Status</label>
-                                    <select name="battery_status" id="battery_status" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="New" >New</option>
-                                        <option value="Old">Old</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="tyre_condition">Tyre Condition</label>
-                                    <select name="tyre_condition" id="tyre_condition" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="New" >New</option>
-                                        <option value="Old">Old</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="accidental">Accidental</label>
-                                    <select name="accidental" id="accidental" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                            </div>
-
-
-
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="vehicle_certificate">Vehicle Certification/ Company Warranty (If Any)</label>
-                                    <select name="vehicle_certificate" id="vehicle_certificate" class="form-control select2-templating" data-live-search="true" onchange="toggleInputField()">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="if_yes">If Yes</label>
-                                    <div class="input-group" id="datepicker2">
-                                        <input type="text" id="if_yes" class="form-control" placeholder="dd MM yyyy" data-date-format="dd M, yyyy" data-date-container='#datepicker2' data-provide="datepicker" data-date-autoclose="true" disabled>
-                                        <small id="error-message" style="color: red; display: none;">Kindly Fill the details</small>
-                                    </div>
-                                </div>
-                                <!--<button type="submit" onclick="validateForm()">Submit</button>-->
-                            </div>
+                        <div class="col-12">
+                            <label for="description">Additional Information</label>
+                            <textarea name="description" id="description" class="form-control" maxlength="225" rows="5" placeholder="If any additional information about the car"></textarea>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- ...........................................End Row............................................ -->
+    </div>
+    <div class="d-flex flex-wrap gap-2" style="margin-left: 38.6rem">
+        <button type="submit" name="save_as_draft" value="true" class="btn btn-secondary" formaction="{% url 'save_draft' %}">Save Draft</button>
+        <button type="submit" class="btn btn-primary waves-effect waves-light">Upload New Car</button>
+    </div>
+</div>
 
-
-        <!-- ......................................Additional Service to Be offered...................................... -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title mb-4">Additional Service</h4>
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="finance">Finance Facility Available </label>
-                                    <select name="finance" id="finance" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="exchange">Exchange Facility Available </label>
-                                    <select name="exchange" id="exchange" class="form-control select2-templating" data-live-search="true">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                            </div>
-
-
-
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label for="extended_warranty">Extended Warranty</label>
-                                    <select name="extended_warranty" id="extended_warranty" class="form-control select2-templating" data-live-search="true" onchange="toggleExtendedWarrantyDate()">
-                                        <option value="" selected disabled>---Select---</option>
-                                        <option value="Yes" >Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3" id="extended_warranty_date_container" style="display: none;">
-                                    <label for="extended_warranty_date">Extended Warranty Expiry Date</label>
-                                    <div class="input-group">
-                                        <input type="text" id="extended_warranty_date" class="form-control" placeholder="MM YYYY" data-date-format="MM yyyy" data-min-view-mode="months" data-provide="datepicker" data-date-autoclose="true">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-12">
-                                <label for="description">Additional Information</label>
-                                <textarea name="description" id="description" class="form-control" maxlength="225" rows="5" placeholder="If any additional information about the car"></textarea>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- ...........................................End Row............................................ -->
-
-        <div class="d-flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary waves-effect waves-light">Upload New Car</button>
-            <button type="submit" name="save_as_draft" value="true" class="btn btn-secondary" formaction="{% url 'save_draft'  %}" >Save Draft</button>
-        </div>
-
-    </form>
-
+<!-- ...........................................End Row............................................ -->
 
 {% endblock %}
 
@@ -928,6 +915,140 @@
             }
         }
     });
+
+    // Multi form scripts 
+    let currentStep = 1;
+    
+const validationMessages = {
+    "car_brand": "Please select a car brand.",
+    "car_variants": "Please select a car variant.",
+    "car_model": "Please select a car model.",
+    "car_year": "Please enter the car's manufacturing year.",
+    "ownership": "Please select the ownership type.",
+    "total_km": "Please enter the total kilometers driven.",
+    "car_color": "Please enter the car color.",
+    "fuel_type": "Please select the fuel type.",
+    "car_transmission": "Please select the transmission type.",
+    "total_keys": "Please select the number of keys.",
+    "engine_capacity": "Please enter the engine capacity.",
+    
+    // Infotainment Features
+    "bluetooth": "Please select if the car has Bluetooth.",
+    "am_radio": "Please select if the car has AM/FM Radio.",
+    "usb_compatibility": "Please select if the car has USB compatibility.",
+    "aux_compatibility": "Please select if the car has AUX compatibility.",
+    "android_car_play": "Please select if the car has Android Auto/Apple Car Play.",
+    "wireless_charger": "Please select if the car has a wireless charger.",
+
+    // Safety Features
+    "abs": "Please select if the car has ABS.",
+    "ebd": "Please select if the car has EBD.",
+    "anti_theft_device": "Please select if the car has an anti-theft device.",
+    "rear_parking_camera": "Please select if the car has a rear parking camera.",
+    "rear_parking_sensor": "Please select if the car has rear parking sensors.",
+    "lock_sensor": "Please select the car's locking system.",
+    "total_air_bag": "Please select the number of airbags.",
+
+    // Vehicle Condition
+    "battery_status": "Please select the battery status.",
+    "tyre_condition": "Please select the tyre condition.",
+    "accidental": "Please specify if the car is accidental.",
+    "vehicle_certificate": "Please select if the car has a warranty.",
+
+    // Additional Services
+    "finance": "Please specify if finance is available.",
+    "exchange": "Please specify if exchange is available.",
+    "extended_warranty": "Please specify if an extended warranty is available.",
+
+    // Default message
+    "text": "Please enter a valid value.",
+    "select-one": "Please select an option.",
+    "date": "Please provide a valid date.",
+    "number": "Please enter a valid number."
+};
+
+function showStep(step) {
+    document.querySelectorAll('.form-step').forEach((el) => {
+        el.style.display = 'none';
+    });
+
+    let current = document.getElementById(`step-${step}`);
+    if (current) {
+        current.style.display = 'block';
+    }
+
+    updateStepper(step);
+    document.getElementById('submit-button').style.display = (step === 7) ? 'block' : 'none';
+}
+
+function validateStep() {
+    if (currentStep === 1) return true; // Skip validation for step 1
+
+    let isValid = true;
+    let inputs = document.querySelectorAll(`#step-${currentStep} input, #step-${currentStep} select`);
+
+    inputs.forEach((el) => {
+        let errorMessage = el.parentElement.querySelector(".error-message");
+
+        if (!el.value.trim()) {
+            el.classList.add("invalid");
+
+            if (!errorMessage) { 
+                errorMessage = document.createElement("span");
+                errorMessage.classList.add("error-message");
+
+                // Use custom messages for known fields, otherwise fallback to type-based messages
+                errorMessage.textContent = validationMessages[el.name] || validationMessages[el.type] || "This field is required.";
+                el.parentElement.appendChild(errorMessage);
+            } 
+
+            errorMessage.style.display = "block"; // Show the message immediately
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+// Remove validation error when user starts typing/selecting
+document.addEventListener("input", function (event) {
+    let el = event.target;
+    if (el.classList.contains("invalid")) {
+        let errorMessage = el.parentElement.querySelector(".error-message");
+        if (errorMessage) {
+            errorMessage.style.display = "none"; 
+        }
+        el.classList.remove("invalid"); 
+    }
+});
+
+function nextStep() {
+    if (validateStep()) { 
+        if (currentStep < 7) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+    }
+}
+
+function updateStepper(step) {
+    document.querySelectorAll(".step").forEach((el, index) => {
+        el.classList.toggle("active", index + 1 === step);
+    });
+}
+
+// Show the first step on page load
+document.addEventListener("DOMContentLoaded", function() {
+    showStep(currentStep);
+});
+
 </script>
 <script>
 function toggleInputField() {
