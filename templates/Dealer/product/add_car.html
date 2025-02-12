@@ -358,7 +358,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="ownership">Ownership</label>
-                                    <select class="form-control select2-templating" name="ownership" id="ownership" required>
+                                    <select class="form-control select2-templating" data-live-search="true" name="ownership" id="ownership" required>
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="1st Owner">1st Owner</option>
                                         <option value="2nd Owner">2nd Owner</option>
@@ -368,15 +368,15 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="total_km">Total Km Driven</label>
-                                    <input id="total_km" name="total_km" type="text" class="form-control" placeholder="Total Km Driven.." required>
+                                    <input id="total_km" name="total_km" type="text" class="form-control" placeholder="Total Km Driven.." value="{{ car_details.total_km_driven|default:'' }}"  required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="car_color">Car Colour</label>
-                                    <input id="car_color" name="car_color" type="text" class="form-control" placeholder="Car Colour....">
+                                    <input id="car_color" name="car_color" type="text" class="form-control" placeholder="Car Colour...."  value="{{ car_details.color|default:'' }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="fuel_type">Fuel Type</label>
-                                    <select class="form-control select2-templating" name="fuel_type" id="fuel_type">
+                                    <select class="form-control select2-templating" data-live-search="true"  name="fuel_type" id="fuel_type">
                                         <option value="" selected disabled>---Select---</option>
                                         <option value="CNG">CNG</option>
                                         <option value="Hybrid">Hybrid</option>
@@ -403,7 +403,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="engine_capacity">Engine Capacity</label>
+                                    <label for="engine_capacity">Engine Capacity ( in CC )</label>
                                     <input id="engine_capacity" name="engine_capacity" type="text" class="form-control" placeholder="Engine Capacity">
                                 </div>
                             </div>
