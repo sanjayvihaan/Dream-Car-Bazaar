@@ -1,3 +1,4 @@
+ls
 {% extends 'Dealer/account/layout.html' %}
 {% load static %}
 
@@ -353,8 +354,8 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="car_year">Year</label>
-                                    <input name="car_year" id="car_year" class="form-control" type="text" placeholder="Year" required>
+                                    <label for="car_year">Registration Year</label>
+                                    <input name="car_year" id="car_year" class="form-control form_control" type="text"  placeholder="Year" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="ownership">Ownership</label>
@@ -444,7 +445,7 @@
                                     <input id="registration_place" name="registration_place" type="text" class="form-control" placeholder="Registration place...">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="registration_no">Registration Number</label>
+                                    <label for="registration no">Registration Number</label>
                                     <input id="registration_no" name="registration_no" type="text" class="form-control" placeholder="Registration number...">
                                 </div>
                                 <div class="mb-3">
@@ -452,11 +453,11 @@
                                     <input id="demand_price" name="demand_price" type="text" class="form-control" placeholder="Demand Pricing...">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="last_service">Last Service</label>
-                                    <input type="date" class="form-control" id="last_service" name="last_service">
+                                    <label for="last_service" class="form-label">Last Service</label>
+                                    <input type="date" class="form-control" id="last_service" name="last_service" >
                                 </div>
                                 <div class="mb-3">
-                                    <label for="vehicle_loc" class="form-label">Location of Vehicle</label>
+                                    <label for="vehicle_location">Location of Vehicle</label>
                                     <input type="text" class="form-control" id="vehicle_location" name="vehicle_location">
                                 </div>
                             </div>
