@@ -36,6 +36,9 @@ from django.utils import timezone
 import json
 from UserManagement.views import *
 from datetime import datetime, date
+from django.views.decorators.http import require_POST
+from django.shortcuts import redirect
+from django.db.models import Q
 
 
 def share_this(request,car_id):
@@ -679,74 +682,64 @@ def update_duration(request):
         return JsonResponse({'message': 'Duration updated'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
     
-def update_lead_status(request,car):
+def update_lead_status(request, car):
     post = get_object_or_404(CarDetails, id=car)
-    owner = post.created_by
     group_list = request.user.groups.values_list('name', flat=True)
-    today = timezone.now().date()
-    # lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post)
+    
     if request.method == 'POST':
         action = request.POST.get('action')
-        day = request.POST.get('std_day')
+        std_day_str = request.POST.get('std_day', None)
         
+        lead, created = Lead.objects.get_or_create(
+            user=request.user, 
+            viewed_car=post,
+            defaults={'status': 'cold', 'user_type': group_list[0]}
+        )
         
-        if action == 'contact_seller':
-            lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'status': 'warm', 'user_type': group_list[0]})
-            if not created:
-                lead.status = 'warm'
-                lead.visit_count += 1
-                lead.user_type = group_list[0]
-            else:
-                lead.visit_count = 1
-            lead.save()
-            lead.refresh_from_db()
-            messages.success(request, 'Our Team may contact you soon !')
+        if not created:
+            if action == 'contact_seller':
+                if lead.status in ['cold', 'hot']:  
+                    lead.status = 'warm'
+            elif action == 'schedule_test_drive' and std_day_str:
+                std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
+                if lead.status in ['cold', 'warm']: 
+                    lead.status = 'hot'
+                lead.visit_time = std_day  
+                
+            lead.visit_count += 1
+            lead.user_type = group_list[0]
+        else:
+            lead.visit_count = 1  
 
-        elif action == 'schedule_test_drive':
-            # Convert std_day from string to date
-            std_day_str = request.POST.get('std_day')
+        lead.save()
+
+        if action == 'schedule_test_drive' and std_day_str:
             std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
-            
-            lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'visit_time': day ,'status':'hot','user_type': group_list[0]})
-            notification, notify = Notification.objects.get_or_create(user=request.user, car=post)
-            # Only set the message once, no matter if the notification was created or fetched
-            
-            if std_day:
-                days_left = (std_day - date.today()).days
-
-                if days_left <= 2:
-                    msg = f" Hurry {days_left} Days left! {lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
-                else:
-                    msg = f"{lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
-                    
+            notification, _ = Notification.objects.get_or_create(user=request.user, car=post)
+            days_left = (std_day - date.today()).days
+            if days_left <= 2:
+                msg = f" Hurry! {days_left} Days left! {request.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}."
+            else:
+                msg = f" {request.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}."
             notification.message = msg
             notification.save()
 
-            if not created:
-                lead.status = 'hot'
-                lead.visit_time = day
-                lead.visit_count += 1
-                lead.user_type = group_list[0]
-                # diff = (lead.visit_time - today).days
-                # if diff <= 2:
-                #     msg = f" Hurry {diff} Days left! {lead.user.get_full_name()} scheduled a test drive on {day} for {lead.viewed_car.variant.model.brand.name}{lead.viewed_car.variant.model.name}{lead.viewed_car.variant.name}"
-                #     alert, flag = Notification.objects.get_or_create(user=request.user, car=post)
-                #     alert.message = msg
-                #     alert.save()
-            else:
-                lead.visit_count = 1
-            lead.save()
-            messages.success(request, 'Our Team will contact you soon !!!')
-        
-        return  HttpResponseRedirect(request.path)
-            
-    return HttpResponseRedirect('/')
-  
+        messages.success(request, 'Your request has been recorded! Our team will contact you soon.')
+        return HttpResponseRedirect(request.path)
+    
+    return HttpResponseRedirect('/')  
 
 def follow_up_view(request):
+    selected_status = request.GET.get('status', 'all')
     cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
     warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
     hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
+
+    if selected_status == 'all':
+        all_leads = Lead.objects.filter(viewed_car__created_by=request.user)
+    else:
+        all_leads = None
+
     cars = CarDetails.objects.filter(created_by=request.user)
     
     # Create a list of cars with concatenated brand, model, and variant
@@ -788,21 +781,32 @@ def follow_up_view(request):
                 Q(viewed_car__variant__model__name=model_name) &
                 Q(viewed_car__variant__name=variant_name)
             )
-    
+
+            if selected_status == 'all':
+                all_leads = all_leads.filter(
+                    Q(viewed_car__variant__model__brand__name=brand_name) &
+                    Q(viewed_car__variant__model__name=model_name) &
+                    Q(viewed_car__variant__name=variant_name)
+                )
+
     # If no car is selected or 'all' is selected, show all leads.
     else:
         cars = CarDetails.objects.filter(created_by=request.user)
         cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
         warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
         hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
-    
+
+        if selected_status == 'all':
+            all_leads = Lead.objects.filter(viewed_car__created_by=request.user)    
 
     context = {
         'cold_leads': cold_leads,
         'warm_leads': warm_leads,
         'hot_leads': hot_leads,
+        'all_leads': all_leads,
         'cars': car_list,  # Pass the modified car list to the template
         'selected_car': selected_car,
+        'selected_status': selected_status
     }
     return render(request, 'Dealer/followup/followup.html', context)
 
@@ -828,7 +832,6 @@ def custom_404(request, exception):
     return render(request, "Dealer/error/404.html", status=404)
 
 def download_lead_excel(request):
-    
     page_number = request.GET.get('page', 1)  # Default to page 1 if not specified
     # Add data from the database
     cars = Lead.objects.filter(viewed_car__created_by= request.user)  # Fetch your records
@@ -1021,9 +1024,6 @@ def sorted_insurances(request):
     expired.sort(key=lambda x:x[1])
     
     return renewal
-
-from django.views.decorators.http import require_POST
-from django.shortcuts import redirect
 
 @require_POST
 def delete_insurance(request, id):

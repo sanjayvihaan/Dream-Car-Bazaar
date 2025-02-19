@@ -1,6 +1,8 @@
 {% extends 'Dealer/account/layout.html' %}
 {% load static %}
 
+<head><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script></head>
+
 {% block common_css %}
 <style>
     .edit-icon, .save-icon {
@@ -38,6 +40,35 @@
     border-radius: 5px;
 }
 
+.dynamicDropdown {
+    border: 1px solid black !important;
+}
+
+.card {
+    border: none;
+}
+
+.tab_container {
+    background-color: rgba(10, 35, 87, .9);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.nav-pills>li>a, .nav-tabs>li>a{
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color: #fff;
+    color: #1A3760;
+    
+}
+
+.download_btn {
+    background-color: rgba(245, 195, 75, .9);
+}
+
 </style>
 
 {% endblock %}
@@ -48,44 +79,75 @@
 
 <div class="container-fluid">
      <div class="row mb-4">
-            <div class="col-lg-6 col-sm-12">
-                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                    <h4 class="mb-sm-0 font-size-18">All Leads
-
-                    </h4>
+        <div class="">
+            <div class="d-flex justify-content-between">
+                <div class="page-title-box">
+                    <h2 class="mb-sm-0">All Leads</h2>
                 </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <ul class="nav nav-pills nav-justified" role="tablist">
-                            <li class="nav-item waves-effect waves-light" role="presentation">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#cold-leads" role="tab" aria-selected="true">
-                                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
-                                    <span class="d-none d-sm-block">Cold Leads</span>
-                                </a>
-                            </li>
-                            <li class="nav-item waves-effect waves-light " role="presentation">
-                                <a class="nav-link" data-bs-toggle="tab" href="#warm-leads" role="tab" aria-selected="false" tabindex="-1">
-                                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
-                                    <span class="d-none d-sm-block">Warm Leads </span>
-                                </a>
-                            </li>
-                            <li class="nav-item waves-effect waves-light " role="presentation">
-                                <a class="nav-link" data-bs-toggle="tab" href="#hot-leads" role="tab" aria-selected="false" tabindex="-1">
-                                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
-                                    <span class="d-none d-sm-block">Hot Leads</span>
-                                </a>
-                            </li>
-                        </ul>
+
+                <div class="d-flex justify-content-end align-items-center gap-30px">
+                    <div class="m-2">
+                        <form method="GET" action="{% url 'dealer:follow_up' %}">
+                            {% comment %} <label for="carFilter">Search Cars:</label> {% endcomment %}
+                           {% comment %} <select class="dropdown" id="carFilter" name="car_name" onchange="filterTable()">
+                                <option value="all" {% if selected_car == 'all' or not selected_car %}selected{% endif %}>All Cars</option>
+                                {% for car in cars %}
+                                    <option value="{{ car.full_name }}"
+                                        {% if selected_car == car.full_name %}selected{% endif %}>
+                                        {{ car.full_name }}
+                                    </option>
+                                {% endfor %}
+                            </select> {% endcomment %}
+                            <div class="dropdown">
+                                <button class="btn btn-[#fff] dropdown-toggle dynamicDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="dropdownMenuButton">
+                                  {% if selected_car and selected_car != 'all' %}
+                                    {{ selected_car }}
+                                  {% else %}
+                                    All Cars
+                                  {% endif %}
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                  <li>
+                                    <a class="dropdown-item" href="#" onclick="selectCar('all')">All Cars</a>
+                                  </li>
+                                  {% for car in cars %}
+                                    <li>
+                                      <a class="dropdown-item" href="#" onclick="selectCar('{{ car.full_name }}')">{{ car.full_name }}</a>
+                                    </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                              
+                              <input type="hidden" id="carFilter" name="car_name" value="{{ selected_car }}" />
+                              
+                        </form>
+                    </div>
+                    <div class="m-2">
+                        <div class="text-sm-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn color-[#1A3760] download_btn waves-effect waves-light dropdown-toggle"
+                                        data-bs-toggle="dropdown" aria-expanded="false" id="selectdownload" >
+                                    <i class="fa fa-download me-1"></i>  Download
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" >
+                                    <!-- PDF Option -->
+                                    <li>
+                                        <a class="dropdown-item" href="#" id="downloadSelectedPdf">Download as PDF</a>
+                                    </li>
+                                    <!-- Excel Option -->
+                                    <li>
+                                        <a class="dropdown-item" id="downloadSelectedExcel">Download as Excel</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row mb-2">
+
+
+        {% comment %} <div class="row mb-2">
             <div class="col-sm-4">
                 <div class="search-box me-2 mb-2 d-inline-block">
                     <div class="position-relative">
@@ -93,101 +155,178 @@
                         <i class="bx bx-search-alt search-icon"></i>
                     </div>
                 </div>
-            </div>
-            <!-- Dropdown Filter -->
-            <div class="col-sm-4">
-                <form method="GET" action="{% url 'dealer:follow_up' %}">
-                    <label for="carFilter">Search Cars:</label>
-                   <select id="carFilter" name="car_name" onchange="filterTable()">
-                        <option value="all" {% if selected_car == 'all' or not selected_car %}selected{% endif %}>Search Cars</option>
-                        {% for car in cars %}
-                            <option value="{{ car.full_name }}"
-                                {% if selected_car == car.full_name %}selected{% endif %}>
-                                {{ car.full_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-
-
-
-                </form>
-            </div>
-        <div class="col-sm-4">
-            <div class="text-sm-end">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary btn-rounded waves-effect waves-light mb-2 dropdown-toggle"
-                            data-bs-toggle="dropdown" aria-expanded="false" id="selectdownload" >
-                        <i class="fa fa-download me-1"></i>  Download
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" >
-                        <!-- PDF Option -->
-                        <li>
-                            <a class="dropdown-item" href="#" id="downloadSelectedPdf">Download as PDF</a>
-                        </li>
-                        <!-- Excel Option -->
-                        <li>
-                            <a class="dropdown-item" href="{% url 'dealer:download_lead_excel' %}" id="downloadSelectedExcel">Download as Excel</a>
-                        </li>
-                    </ul>
+            </div> {% endcomment %}
+        
+        <div class="row">
+            <div class="col-12 tab_container">
+                <div class="tab_card">
+                    <div class="card-body">
+                        <ul class="nav nav-pills nav-justified" role="tablist">
+                            <!-- All Leads Tab -->
+                            <li class="nav-item waves-effect waves-light" role="presentation">
+                                <a class="nav-link {% if selected_status == 'all' %}active{% endif %}" 
+                                   data-bs-toggle="tab" href="#all-leads" role="tab" aria-selected="{% if selected_status == 'all' %}true{% else %}false{% endif %}">
+                                    <span class="d-block d-sm-none"><i class="fas fa-users"></i></span>
+                                    <span class="d-none d-sm-block current-tab">All Leads</span>
+                                </a>
+                            </li>
+                            <li class="nav-item waves-effect waves-light" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#cold-leads" role="tab" aria-selected="true">
+                                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
+                                    <span class="d-none d-sm-block current-tab">Cold Leads</span>
+                                </a>
+                            </li>
+                            <li class="nav-item waves-effect waves-light " role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#warm-leads" role="tab" aria-selected="false" tabindex="-1">
+                                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
+                                    <span class="d-none d-sm-block current-tab">Warm Leads </span>
+                                </a>
+                            </li>
+                            <li class="nav-item waves-effect waves-light " role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#hot-leads" role="tab" aria-selected="false" tabindex="-1">
+                                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
+                                    <span class="d-none d-sm-block current-tab">Hot Leads</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>  
+        </div>
+        
+
+        
         </div>
         <div class="row">
             <div class="col-12">
 
                 <div class="card">
-                    <div class="card-body p-0">
+                    <div class="card-body p-2">
                         <!-- Tab panes -->
                         <div class="tab-content text-muted">
-                            <div class="tab-pane fade show active" id="cold-leads" role="tabpanel">
-                                <!--<div class="card">-->
-                                <!--    <div class="card-body p-0">-->
-                                <!--        <div class="table-responsive">-->
-                                <!--            <table id="dataTable"-->
-                                <!--                class="table align-middle table-nowrap table-check table-bordered">-->
-                                <!--                <thead class="table-light">-->
-                                <!--                    <tr>-->
-                                <!--                        <th>User</th>-->
-                                <!--                        <th>User Type</th>-->
-                                <!--                        <th>Phone</th>-->
-                                <!--                        <th>Email</th>-->
-                                <!--                        <th>Visited At</th>-->
-                                <!--                        <th>Engagement(in Seconds)</th>-->
-                                <!--                        <th>Status</th>-->
-                                <!--                        <th>Interest</th>-->
-                                <!--                        <th>Visit Count</th>-->
-                                <!--                    </tr>-->
-                                <!--                </thead>-->
-                                <!--                <tbody>-->
-                                <!--                    {% for lead in cold_leads %}-->
-                                <!--                    <tr>-->
-                                <!--                        <td>{{ lead.user.get_full_name}}</td>-->
-                                <!--                        <td>{{lead.user_type}}</td>-->
-                                <!--                        <td>{{ lead.user.phone }}</td>-->
-                                <!--                        <td>{{ lead.user.email }}</td>-->
-                                <!--                        <td>{{lead.visit_time}}</td>-->
-                                <!--                        <td>{{lead.page_stay_duration}}</td>-->
-                                <!--                        <td>{{lead.status}}</td>-->
-                                <!--                        <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>-->
-                                <!--                        <td>{{lead.visit_count}}</td>-->
-                                                        
-                                <!--                    </tr>-->
-                                <!--                    {% endfor %}-->
-                                <!--                </tbody>-->
-                                            
-                                <!--            </table>-->
-                                <!--        </div>-->
-                                <!--    </div>-->
-                                <!--</div>-->
+
+                            <div class="tab-pane fade show active" id="all-leads" role="tabpanel">
+                                <div class="card">
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table id="dataTable" class="dataTableClass table table-striped">
+                                                <thead class="">
+                                                    <tr>
+                                                        <th>User</th>
+                                                        <th>User Type</th>
+                                                        <th>Phone</th>
+                                                        <th>Email</th>
+                                                        <th>Actions</th>
+                                                        <th>Visited At</th>
+                                                        <th>Engagement(in Seconds)</th>
+                                                        <th>Status</th>
+                                                        <th>Interest</th>
+                                                        <th>Visit Count</th>
+                                                        {% comment %} <th>Lead Status</th> {% endcomment %}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for lead in all_leads %}
+                                                    <tr>
+                                                        <td>{{ lead.user.get_full_name}}</td>
+                                                        <td>{{lead.user_type}}</td>
+                                                        <td>{{ lead.user.phone }}</td>
+                                                        <td>{{ lead.user.email }}</td>
+                                                        <td>
+                                                            <div class="action-buttons">
+                                                                {% if lead.user.phone %}
+                                                                <a href="tel:{{ lead.user.phone }}" class="btn btn-sm btn-primary" title="Call">
+                                                                    📞
+                                                                </a>
+                                                                <a href="sms:{{ lead.user.phone }}" class="btn btn-sm btn-success" title="Send SMS">
+                                                                    ✉️
+                                                                </a>
+                                                                {% endif %}
+                                                                {% if lead.user.email %}
+                                                                <a href="mailto:{{ lead.user.email }}" class="btn btn-sm btn-info" title="Send Email">
+                                                                    📧
+                                                                </a>
+                                                                {% endif %}
+                                                            </div>
+                                                        </td>                                            
+                                                        <td>{{lead.visit_time}}</td>
+                                                        <td>{{lead.page_stay_duration}}</td>
+                                                        <td>{{lead.status}}</td>
+                                                        <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>
+                                                        <td>{{lead.visit_count}}</td>
+                                                         
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                             
+                                            </table>
+                                        </div>
+                                    </div>
+                                 </div>
+                                </div>
+                            
+                            <div class="tab-pane fade" id="cold-leads" role="tabpanel">
+                                <div class="card">
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table id="dataTable" class="dataTableClass table table-striped">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>User</th>
+                                                        <th>User Type</th>
+                                                        <th>Phone</th>
+                                                        <th>Email</th>
+                                                        <th>Actions</th>
+                                                        <th>Visited At</th>
+                                                        <th>Engagement(in Seconds)</th>
+                                                        <th>Status</th>
+                                                        <th>Interest</th>
+                                                        <th>Visit Count</th>
+                                                        {% comment %} <th>Lead Status</th> {% endcomment %}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for lead in cold_leads %}
+                                                    <tr>
+                                                        <td>{{ lead.user.get_full_name}}</td>
+                                                        <td>{{lead.user_type}}</td>
+                                                        <td>{{ lead.user.phone }}</td>
+                                                        <td>{{ lead.user.email }}</td>
+                                                        <td>
+                                                            <div class="action-buttons">
+                                                                {% if lead.user.phone %}
+                                                                <a href="tel:{{ lead.user.phone }}" class="btn btn-sm btn-primary" title="Call">
+                                                                    📞
+                                                                </a>
+                                                                <a href="sms:{{ lead.user.phone }}" class="btn btn-sm btn-success" title="Send SMS">
+                                                                    ✉️
+                                                                </a>
+                                                                {% endif %}
+                                                                {% if lead.user.email %}
+                                                                <a href="mailto:{{ lead.user.email }}" class="btn btn-sm btn-info" title="Send Email">
+                                                                    📧
+                                                                </a>
+                                                                {% endif %}
+                                                            </div>
+                                                        </td>                                            
+                                                        <td>{{lead.visit_time}}</td>
+                                                        <td>{{lead.page_stay_duration}}</td>
+                                                        <td>{{lead.status}}</td>
+                                                        <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>
+                                                        <td>{{lead.visit_count}}</td>
+                                                         
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                             
+                                            </table>
+                                        </div>
+                                    </div>
+                                 </div>
                                 
                                 
-                                <div class="row">
-                                {% for lead in cold_leads %}
-                                    <script>
-                                        let c_lead = "{{ lead }}"
-                                        console.log("Cold Lead: ", c_lead)
-                                    </script>
+                                {% comment %} <div class="row">
+                                    {% for lead in cold_leads %}
                                     <div class="col-xl-3 col-md-6">
                                         <div class="card m-2">
                                             <div class="card-body" style="box-shadow: 0 0 5px #ececec;border-radius: 5px;">
@@ -218,51 +357,16 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    {% endfor %}
+                                        {% endfor %}
                                     </div>
-                                
-                                
-                            </div>
-                            <!-- warm lead -->
-                            <!--<div class="tab-pane fade" role="tabpanel " id="warm-leads">-->
-                            <!--    <div class="card ">-->
-                            <!--        <div class="card-body p-0">-->
-                            <!--            <div class="table-responsive">-->
-                            <!--                <table class="table align-middle table-nowrap table-check table-bordered warrantyTable">-->
-                            <!--                    <thead class="table-light">-->
-                            <!--                        <tr>-->
-                            <!--                            <th>User</th>-->
-                            <!--                            <th>User Type</th>-->
-                            <!--                            <th>Phone</th>-->
-                            <!--                            <th>Email</th>-->
-                            <!--                            <th>Visited At</th>-->
-                            <!--                            <th>Engagement(in Seconds)</th>-->
-                            <!--                            <th>Status</th>-->
-                            <!--                            <th>Interest</th>-->
-                            <!--                            <th>Visit Count</th>-->
-                            <!--                        </tr>-->
-                            <!--                    </thead>-->
-                            <!--                    <tbody>-->
-                            <!--                        {% for lead in warm_leads %}-->
-                            <!--                        <tr>-->
-                            <!--                            <td>{{ lead.user.get_full_name}}</td>-->
-                            <!--                            <td>{{lead.user_type}}</td>-->
-                            <!--                            <td>{{ lead.user.phone }}</td>-->
-                            <!--                            <td>{{ lead.user.email }}</td>-->
-                            <!--                            <td>{{lead.visit_time}}</td>-->
-                            <!--                            <td>{{lead.page_stay_duration}}</td>-->
-                            <!--                            <td>{{lead.status}}</td>-->
-                            <!--                            <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>-->
-                            <!--                            <td>{{lead.visit_count}}</td>-->
-                            <!--                        </tr>-->
-                            <!--                        {% endfor %}-->
-                            <!--                    </tbody>-->
-                            <!--                </table>-->
-                            <!--            </div>-->
-                            <!--        </div>-->
-                            <!--    </div>-->
-                            <!--</div>-->
-                            <div class="tab-content text-muted">
+                                </div> {% endcomment %}
+                                <!-- warm lead -->
+                               
+                            
+                           
+
+
+                            {% comment %} <div class="tab-content text-muted">
                             <div class="tab-pane fade" role="tabpanel " id="warm-leads">
                              <div class="card ">
                                <div class="card-body p-0">
@@ -304,11 +408,11 @@
                                     </div>
                                     </div>
                                 </div>
-                            </div>
-                            
+                            </div> {% endcomment %}
                             <!--hotlead-->
-                            <div class="tab-content text-muted">
-                            <div class="tab-pane fade" role="tabpanel " id="warm-leads">
+                            
+                            {% comment %} <div class="tab-content text-muted"> {% endcomment %}
+                            {% comment %} <div class="tab-pane fade" role="tabpanel " id="warm-leads">
                              <div class="card ">
                                <div class="card-body p-0">
 
@@ -353,48 +457,89 @@
                                     </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> {% endcomment %}
                             
                             
                             <!-- hot-leads table -->
-                            <!--<div class="tab-pane fade" role="tabpanel " id="hot-leads">-->
-                            <!--    <div class="card ">-->
-                            <!--        <div class="card-body p-0">-->
-                            <!--            <div class="table-responsive">-->
-                            <!--                <table class="table align-middle table-nowrap table-check table-bordered warrantyTable">-->
-                            <!--                    <thead class="table-light">-->
-                            <!--                        <tr>-->
-                            <!--                            <th>User</th>-->
-                            <!--                            <th>User Type</th>-->
-                            <!--                            <th>Phone</th>-->
-                            <!--                            <th>Email</th>-->
-                            <!--                            <th>Visited At</th>-->
-                            <!--                            <th>Engagement(in Seconds)</th>-->
-                            <!--                            <th>Status</th>-->
-                            <!--                            <th>Interest</th>-->
-                            <!--                            <th>Visit Count</th>-->
-                            <!--                        </tr>-->
-                            <!--                    </thead>-->
-                            <!--                    <tbody>-->
-                            <!--                        {% for lead in hot_leads %}-->
-                            <!--                        <tr class="record {% if lead.visit_time < now %}past-record{% else %}future-record{% endif %}">-->
-                            <!--                            <td>{{ lead.user.get_full_name}}</td>-->
-                            <!--                            <td>{{lead.user_type}}</td>-->
-                            <!--                            <td>{{ lead.user.phone }}</td>-->
-                            <!--                            <td>{{ lead.user.email }}</td>-->
-                            <!--                            <td>{{lead.visit_time}}</td>-->
-                            <!--                            <td>{{lead.page_stay_duration}}</td>-->
-                            <!--                            <td>{{lead.status}}</td>-->
-                            <!--                            <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>-->
-                            <!--                            <td>{{lead.visit_count}}</td>-->
-                            <!--                        </tr>-->
-                            <!--                        {% endfor %}-->
-                            <!--                    </tbody>-->
-                            <!--                </table>-->
-                            <!--            </div>-->
-                            <!--        </div>-->
-                            <!--    </div>-->
-                            <!--</div>-->
+                                 
+                            
+                        </div>
+                        <div class="tab-pane fade" role="tabpanel " id="warm-leads">
+                            <div class="card ">
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="dataTableClass table align-middle table-nowrap table-check table-bordered warrantyTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>User</th>
+                                                    <th>User Type</th>
+                                                    <th>Phone</th>
+                                                    <th>Email</th>
+                                                    <th>Actions</th>
+                                                    <th>Visited At</th>
+                                                    <th>Engagement(in Seconds)</th>
+                                                    <th>Status</th>
+                                                    <th>Interest</th>
+                                                    <th>Visit Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for lead in warm_leads %}
+                                                <tr>
+                                                    <td>{{ lead.user.get_full_name}}</td>
+                                                    <td>{{lead.user_type}}</td>
+                                                    <td>{{ lead.user.phone }}</td>
+                                                    <td>{{ lead.user.email }}</td>
+                                                    <td>{{lead.visit_time}}</td>
+                                                    <td>{{lead.page_stay_duration}}</td>
+                                                    <td>{{lead.status}}</td>
+                                                    <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>
+                                                    <td>{{lead.visit_count}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" role="tabpanel " id="hot-leads">
+                            <div class="card ">
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table id="dataTable" class="dataTableClass table table-striped">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>User</th>
+                                                    <th>User Type</th>
+                                                    <th>Phone</th>
+                                                    <th>Email</th>
+                                                    <th>Visited At</th>
+                                                    <th>Engagement(in Seconds)</th>
+                                                    <th>Status</th>
+                                                    <th>Interest</th>
+                                                    <th>Visit Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for lead in hot_leads %}
+                                                <tr class="record {% if lead.visit_time < now %}past-record{% else %}future-record{% endif %}">
+                                                    <td>{{ lead.user.get_full_name}}</td>
+                                                    <td>{{lead.user_type}}</td>
+                                                    <td>{{ lead.user.phone }}</td>
+                                                    <td>{{ lead.user.email }}</td>
+                                                    <td>{{lead.visit_time}}</td>
+                                                    <td>{{lead.page_stay_duration}}</td>
+                                                    <td>{{lead.status}}</td>
+                                                    <td>{{lead.viewed_car.variant.model.brand.name}} {{lead.viewed_car.variant.model.name}} {{lead.viewed_car.variant.name}}</td>
+                                                    <td>{{lead.visit_count}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                 </div>
         </div>
@@ -406,6 +551,73 @@
 {% endblock %}
 
 {% block js%}
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        var current_page_number = 1;
+        var table = $('.dataTableClass').DataTable({
+            "paging": true,
+            "pageLength": 10,
+            "lengthMenu": [10, 25, 50, 100],
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true
+        });
+    
+        console.log("Current Page: " + (table.page.info().page + 1));
+    
+        $('.dataTableClass').on('page.dt', function () {
+            current_page_number = table.page.info().page + 1; 
+            console.log("Current Page: " + currentPage);
+        });
+
+        $('#downloadSelectedExcel').click(function(){
+            let file_name = prompt('Enter the file name')
+            let current_tab = $('.nav-link.active .current-tab').text().trim(); 
+            if(file_name != null){
+                console.log('file_name: ', file_name, 'current_tab: ', current_tab, 'page number: ', current_page_number)
+                {% for lead in cold_leads %}
+                    var current_lead = "{{ lead }}"
+                    console.log('current_lead: ', current_lead)
+                {% endfor %}
+                $.ajax({
+                    url: "{% url 'dealer:download_lead_excel' %}",
+                    method: "POST",
+                    data: {
+                        file_name: file_name,
+                        current_tab: current_tab,
+                    },
+                    success: function(response){
+                        window.location.reload();
+                    },
+                    error: function(error){
+                        alert('Error in Downloading file')
+                    }
+                })
+            }
+        })
+        
+    });
+
+
+    function selectCar(carName) {
+        document.getElementById('carFilter').value = carName;
+        document.getElementById('dropdownMenuButton').textContent = carName === 'all' ? 'All Cars' : carName;
+        filterTable(); // Call the function to filter the table
+    }
+    
+</script>
+
+
+
 <script>
     // Function to search in the currently active tab's table
     function searchTable() {
@@ -456,6 +668,5 @@
         }
     };
 </script>
-
 
 {% endblock %}
