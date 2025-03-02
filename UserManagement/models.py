@@ -36,7 +36,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('The Phone No. must be set')
         user = self.model(phone=phone, **extra_fields)
         user.set_password(password)
-        user.save()
+        user.save(using = self.db)
         return user
 
     def create_superuser(self, phone, password, **extra_fields):
@@ -56,8 +56,7 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.CharField(default=generate_unique_object_id, primary_key=True, max_length=24)
-    phone_regex = RegexValidator(regex=r'^[6789]\d{9}$',
-                                 message="Phone number must be 10 digit no and started from 6 to 9 ...")
+    phone_regex = RegexValidator(regex=r'^[6789]\d{9}$', message="Phone number must be 10 digit no and started from 6 to 9 ...")
     phone = models.CharField(max_length=15, unique=True, validators=[phone_regex])
     first_name = models.CharField(max_length=45, null=True, blank=True)
     last_name = models.CharField(max_length=45, null=True, blank=True)
