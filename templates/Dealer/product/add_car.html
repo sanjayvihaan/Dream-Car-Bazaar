@@ -284,7 +284,9 @@
             <form method="post" action="{% url 'save_car' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 
-                <input type="hidden" name="car_id" value="{{ car.id }}">
+                    <!-- Hidden field to check whether it’s a draft (resumed form) or a fresh entry -->
+                
+                    <input type="hidden" name="car_id" value="{{ car.id }}">
                 
                 <!-- Step 1: Image Upload -->
                 <div class="row">
@@ -328,7 +330,6 @@
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-primary" onclick="nextStep(1)">Submit</button>
                 </div>
-            </form>
         </div>
     </div>
     
@@ -348,10 +349,12 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="car_variants">Car Variants</label>
-                                    <select class="form-control select2-templating" name="car_variants" id="car_variants" required>
-                                        <option value="">---------</option>
-                                    </select>
+                                    <div class="templating-select">
+                                        <label for="car_variants">Car Variants</label>
+                                        <select class="form-control select2-templating" data-live-search="true" name="car_variants" id="car_variants" required>
+                                            <option value="">---------</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="car_year">Year</label>
@@ -764,9 +767,9 @@
                 <div class="col-sm-6">
                     <div class="mb-3">
                         <label for="vehicle_certificate">Vehicle Certification/ Company Warranty (If Any)</label>
-                        <select name="vehicle_certificate" id="vehicle_certificate" class="form-control select2-templating" onchange="selectedvalYes()">
+                        <select name="vehicle_certificate" id="vehicle_certificate" class="form-control select2-templating" data-live-search="true" onchange="toggleInputField()">
                             <option value="" selected disabled>---Select---</option>
-                            <option value="Yes">Yes</option>
+                            <option value="Yes" >Yes</option>
                             <option value="No">No</option>
                         </select>
                     </div>
@@ -836,12 +839,13 @@
         </div>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <button type="submit" name="save_as_draft" value="true" class="btn btn-secondary" formaction="{% url 'save_draft' %}">Save Draft</button>
+        <button type="submit" name="save_as_draft" value="true" class="btn btn-secondary" formaction="{% url 'save_draft'  %}" >Save Draft</button>
         <button type="submit" class="btn btn-primary waves-effect waves-light">Upload New Car</button>
+    </div>
     </div>
 </div>
 
-<!-- ...........................................End Row............................................ -->
+</form>
 
 {% endblock %}
 
@@ -964,57 +968,9 @@
 
     // Multi form scripts 
     let currentStep = 1;
-    
-const validationMessages = {
-    "car_brand": "Please select a car brand.",
-    "car_variants": "Please select a car variant.",
-    "car_model": "Please select a car model.",
-    "car_year": "Please enter the car's manufacturing year.",
-    "ownership": "Please select the ownership type.",
-    "total_km": "Please enter the total kilometers driven.",
-    "car_color": "Please enter the car color.",
-    "fuel_type": "Please select the fuel type.",
-    "car_transmission": "Please select the transmission type.",
-    "total_keys": "Please select the number of keys.",
-    "engine_capacity": "Please enter the engine capacity.",
-    
-    // Infotainment Features
-    "bluetooth": "Please select if the car has Bluetooth.",
-    "am_radio": "Please select if the car has AM/FM Radio.",
-    "usb_compatibility": "Please select if the car has USB compatibility.",
-    "aux_compatibility": "Please select if the car has AUX compatibility.",
-    "android_car_play": "Please select if the car has Android Auto/Apple Car Play.",
-    "wireless_charger": "Please select if the car has a wireless charger.",
-
-    // Safety Features
-    "abs": "Please select if the car has ABS.",
-    "ebd": "Please select if the car has EBD.",
-    "anti_theft_device": "Please select if the car has an anti-theft device.",
-    "rear_parking_camera": "Please select if the car has a rear parking camera.",
-    "rear_parking_sensor": "Please select if the car has rear parking sensors.",
-    "lock_sensor": "Please select the car's locking system.",
-    "total_air_bag": "Please select the number of airbags.",
-
-    // Vehicle Condition
-    "battery_status": "Please select the battery status.",
-    "tyre_condition": "Please select the tyre condition.",
-    "accidental": "Please specify if the car is accidental.",
-    "vehicle_certificate": "Please select if the car has a warranty.",
-
-    // Additional Services
-    "finance": "Please specify if finance is available.",
-    "exchange": "Please specify if exchange is available.",
-    "extended_warranty": "Please specify if an extended warranty is available.",
-
-    // Default message
-    "text": "Please enter a valid value.",
-    "select-one": "Please select an option.",
-    "date": "Please provide a valid date.",
-    "number": "Please enter a valid number."
-};
 
 function showStep(step) {
-    document.querySelectorAll('.form-step').forEach((el) => {
+    document.querySelectorAll('.form-step').forEach(el => {
         el.style.display = 'none';
     });
 
@@ -1025,47 +981,27 @@ function showStep(step) {
 
     updateStepper(step);
     document.getElementById('submit-button').style.display = (step === 7) ? 'block' : 'none';
+
+    document.querySelectorAll('.form-step input, .form-step select').forEach(el => {
+        el.removeAttribute('required');
+    });
+
+    if (current) {
+        current.querySelectorAll('input, select').forEach(el => {
+            if (!el.disabled && el.offsetParent !== null) {
+                el.setAttribute('required', 'true');
+            }
+        });
+    }
 }
 
 function validateStep() {
-    if (currentStep === 1) return true; // Skip validation for step 1
-
-    let isValid = true;
-    let inputs = document.querySelectorAll(`#step-${currentStep} input, #step-${currentStep} select`);
-
-    inputs.forEach((el) => {
-        let errorMessage = el.parentElement.querySelector(".error-message");
-
-        if (!el.value.trim()) {
-            el.classList.add("invalid");
-
-            if (!errorMessage) { 
-                errorMessage = document.createElement("span");
-                errorMessage.classList.add("error-message");
-
-                // Use custom messages for known fields, otherwise fallback to type-based messages
-                errorMessage.textContent = validationMessages[el.name] || validationMessages[el.type] || "This field is required.";
-                el.parentElement.appendChild(errorMessage);
-            } 
-
-            errorMessage.style.display = "block"; // Show the message immediately
-            isValid = false;
-        }
-    });
-
-    return isValid;
+    return true; // Allow navigation without validation
 }
 
-// Remove validation error when user starts typing/selecting
-document.addEventListener("input", function (event) {
+document.addEventListener("input", function(event) {
     let el = event.target;
-    if (el.classList.contains("invalid")) {
-        let errorMessage = el.parentElement.querySelector(".error-message");
-        if (errorMessage) {
-            errorMessage.style.display = "none"; 
-        }
-        el.classList.remove("invalid"); 
-    }
+    el.classList.remove("invalid");
 });
 
 function nextStep() {
@@ -1090,37 +1026,41 @@ function updateStepper(step) {
     });
 }
 
-// Show the first step on page load
 document.addEventListener("DOMContentLoaded", function() {
     showStep(currentStep);
 });
 
-</script>
-<script>
 function toggleInputField() {
     const dropdown = document.getElementById('vehicle_certificate');
     const inputField = document.getElementById('if_yes');
-    const errorMessage = document.getElementById('error-message');
-
-    if (dropdown.value === "Yes") {
-        inputField.disabled = false;
-        inputField.required = true; // Make the date field required
-    } else {
-        inputField.disabled = true;
-        inputField.required = false;
-        errorMessage.style.display = "none"; // Hide error if "No" is selected
+    
+    if (dropdown && inputField) {
+        if (dropdown.value === "Yes") {
+            inputField.disabled = false;
+            inputField.setAttribute('required', 'true');
+            inputField.classList.remove("invalid");
+        } else {
+            inputField.disabled = true;
+            inputField.removeAttribute('required');
+            inputField.value = ""; 
+        }
     }
 }
-
 
 function toggleExtendedWarrantyDate() {
     const dropdown = document.getElementById('extended_warranty');
     const dateContainer = document.getElementById('extended_warranty_date_container');
+    const dateField = document.getElementById('extended_warranty_date');
 
-    if (dropdown.value === "Yes") {
-        dateContainer.style.display = "block";
-    } else {
-        dateContainer.style.display = "none";
+    if (dropdown && dateContainer && dateField) {
+        if (dropdown.value === "Yes") {
+            dateContainer.style.display = "block";
+            dateField.setAttribute('required', 'true');
+        } else {
+            dateContainer.style.display = "none";
+            dateField.removeAttribute('required');
+            dateField.value = "";
+        }
     }
 }
 
