@@ -738,9 +738,14 @@ def follow_up_view(request):
     if not user.groups.filter(name='Dealer').exists():
         return HttpResponseRedirect('/')
     selected_status = request.GET.get('status', 'all')
-    cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
-    warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
-    hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
+    try:
+        cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
+        warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
+        hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
+    except Exception as e:
+        print('Exception occurred while fetching lead records:', e)
+    
+    
 
     if selected_status == 'all':
         all_leads = Lead.objects.filter(viewed_car__created_by=request.user)
@@ -761,6 +766,7 @@ def follow_up_view(request):
     selected_car = request.GET.get('car_name')
 
     if selected_car and selected_car != 'all':
+        print('if part')
         selected_car_parts = selected_car.split(' ', 2)
         if len(selected_car_parts) == 3:
             brand_name, model_name, variant_name = selected_car_parts
@@ -797,6 +803,7 @@ def follow_up_view(request):
                 )
 
     else:
+        print('else part')
         cars = CarDetails.objects.filter(created_by=request.user)
         cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
         warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
@@ -814,6 +821,7 @@ def follow_up_view(request):
         'selected_car': selected_car,
         'selected_status': selected_status
     }
+    print('context: ', context)
     return render(request, 'Dealer/followup/followup.html', context)
 
 
