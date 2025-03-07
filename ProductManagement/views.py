@@ -285,6 +285,7 @@ def resume_form(request, car_id):
 
 
 def save_car(request):
+    print('Hit save_car')
     if request.user.is_authenticated:
         user = request.user
         phone_no = user.phone
