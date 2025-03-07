@@ -268,8 +268,6 @@ def our_package(request):
 def terms_and_conditions(request):
     return render(request, "Website/terms-and-conditions.html")
     
-
-
 def privacy_policy(request):
     return render(request, "Website/privacy-policy.html")
     

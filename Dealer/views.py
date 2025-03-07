@@ -371,6 +371,8 @@ def download_excel(request):
 
 def add_car(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     # all_car_details = CarDetails.objects.filter(created_by=user)
     car_brand = CarBrands.objects.filter(is_active=True)
     car_model = CarModel.objects.filter(is_active=True)
@@ -586,6 +588,8 @@ def update_top(request,id):
 
 def car_list(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     all_cars = CarDetails.objects.filter(created_by=user, review='approved').exclude(status='deleted').order_by('-updated_at')
     # made_live = DraftCarDetails.objects.filter(is_draft=False)
     all_car_details = list(all_cars)
@@ -730,6 +734,9 @@ def update_lead_status(request, car):
     return HttpResponseRedirect('/')  
 
 def follow_up_view(request):
+    user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     selected_status = request.GET.get('status', 'all')
     cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
     warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
@@ -789,7 +796,6 @@ def follow_up_view(request):
                     Q(viewed_car__variant__name=variant_name)
                 )
 
-    # If no car is selected or 'all' is selected, show all leads.
     else:
         cars = CarDetails.objects.filter(created_by=request.user)
         cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
@@ -902,15 +908,10 @@ def customer_car(request):
     else:
         return HttpResponseRedirect('/')
 
-
-
-
-
-
-
-
 def profile(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     if not user.is_authenticated:
         messages.info(request,"Please login to access the page!")
         return home(request)
@@ -958,6 +959,8 @@ def profile(request):
 
 def dealer_dashboard(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     total_car = CarDetails.objects.filter(created_by=user).count()
     # views.py
     notifications = Notification.objects.filter(car__created_by=user ,is_read=False).order_by('-created_at')
@@ -1042,6 +1045,8 @@ def delete_insurance(request, id):
 
 def insurance(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     car_brand = CarBrands.objects.filter(is_active=True)
     # insurance_list = Insurance.objects.filter(is_active=True)
     insurance_list = Insurance.objects.filter(created_by=user).order_by('-risk_end_date')
@@ -1200,6 +1205,8 @@ def delete_warranty(request, id):
     
 def warranty(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     car_brand = CarBrands.objects.filter(is_active=True)
     warranty_list = Warranty.objects.filter(created_by=user).order_by('-purchase_date')
     warranty_count = warranty_list.count()
