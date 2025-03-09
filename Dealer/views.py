@@ -745,8 +745,6 @@ def follow_up_view(request):
     except Exception as e:
         print('Exception occurred while fetching lead records:', e)
     
-    
-
     if selected_status == 'all':
         all_leads = Lead.objects.filter(viewed_car__created_by=request.user)
     else:
