@@ -26,14 +26,31 @@ def car_review(request):
             car_detail.status = 'live'
             car_detail.is_draft = False
             full_name = f"{car_detail.variant.model.brand.name} {car_detail.variant.model.name} {car_detail.variant.name}"
-            msg = f"User {car_detail.created_by.get_full_name()} car {full_name} is approved by the admin. Added to Live Cars!"
-            notification = Notification.objects.create(user=car_detail.created_by, message=msg, source='admin') 
+            
+            if car_detail.created_by:
+                user_name = car_detail.created_by.get_full_name()
+                msg = f"User {user_name} car {full_name} is approved by the admin. Added to Live Cars!"
+                print(msg)
+                Notification.objects.create(user=car_detail.created_by, message=msg, source='admin') 
+            else:
+                msg = f"Car {full_name} is approved by the admin but not associated with user"
+                print(msg)
+            
             #  messages.success(request, f"Car #{car_detail.id} approved successfully!")
         elif approval_status == 'no':
             car_detail.review = 'rejected'
             full_name = f"{car_detail.variant.model.brand.name} {car_detail.variant.model.name} {car_detail.variant.name}"
-            msg = f"User {car_detail.created_by.get_full_name()} car {full_name} is rejected by the admin. Added to Rejected Cars!"
-            notification = Notification.objects.create(user=car_detail.created_by, message=msg, source='admin')
+            
+            if car_detail.created_by:
+                user_name = car_detail.created_by.get_full_name()
+                msg = f"User {user_name} car {full_name} is rejected by the admin. Added to Rejected Cars!"
+                print(msg)
+
+                Notification.objects.create(user=car_detail.created_by, message=msg, source='admin')
+            else: 
+                msg = f"Car {full_name}  is rejected by the admin"
+                print(msg)
+
 
         car_detail.save()
         referrer = request.META.get('HTTP_REFERER')
