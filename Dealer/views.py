@@ -2,11 +2,13 @@ from django.shortcuts import render, HttpResponseRedirect
 from ProductManagement.models import *
 from UserManagement.models import *
 from Customer.models import *
+from .models import LeadNotes
 from django.db.models import Exists, F, Subquery, OuterRef, Q
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
-# Create your views here.
+from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -16,7 +18,6 @@ from openpyxl.styles import Font
 from django.core.paginator import Paginator
 import xlwt
 from django.shortcuts import get_object_or_404
-
 
 # from django.views import View
 from reportlab.lib.pagesizes import letter
@@ -1125,8 +1126,6 @@ def insurance(request):
                             'expired':expired,'renewal':insurances_with_expiry, 'current':live ,'live_count':live_count })
 
 
-
-from django.utils import timezone
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import get_object_or_404,redirect
@@ -1307,3 +1306,38 @@ def generate_card_view(request, car_id):
     car_detail = get_object_or_404(CarDetail, id=car_id)
     image_buffer = generate_visiting_card(car_detail)
     return HttpResponse(image_buffer, content_type='image/png')
+
+def lead_notes(request):
+    user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
+    
+    note_id = request.POST.get('note_id')
+    lead_id = request.POST.get('lead_id')
+    notes = request.POST.get('notes')
+    
+    
+    if request.POST.get('note_type')=='fetch-all':
+        if lead_id not in [None,'']:
+            print('leadid: ', lead_id)
+            datas = LeadNotes.objects.filter(lead_id=lead_id, dealer_id=user.id).order_by("-created_at")
+            serialized_queryset = serializers.serialize('json',  list(datas))
+            return JsonResponse({'datas': serialized_queryset})
+
+    if request.POST.get('note_type')=='new-note' and lead_id not in [None, '']:
+        lead_note = LeadNotes.objects.create(lead_id=lead_id, dealer_id=user.id, notes=notes)
+    
+    if request.POST.get('note_type')=='edit-note' and lead_id not in [None, ''] and note_id:
+        lead_note = LeadNotes.objects.get(id=note_id)
+        if lead_note:
+            lead_note.notes = notes
+            lead_note.modified_at = timezone.now()
+            lead_note.save()
+        
+    if request.POST.get('note_type')=='delete-note' and lead_id not in [None, ''] and note_id:
+        lead_note = LeadNotes.objects.get(id=note_id)
+        lead_note.delete()
+            
+    datas = LeadNotes.objects.filter(lead_id=lead_id, dealer_id=user.id).order_by("-created_at")
+    serialized_queryset = serializers.serialize('json',  list(datas))
+    return JsonResponse({'datas': serialized_queryset})

@@ -42,7 +42,8 @@ urlpatterns = [
     path('update-vehicle/<str:id>/',update_vehicle,name='update-vehicle'),    
     path('update-additional/<str:id>/',update_additional,name='update-additional'),
     path('update-top/<str:id>/',update_top,name='update-top'),
-     path('generate_card/<int:car_id>/', generate_card_view, name='generate_card'),
+    path('generate_card/<int:car_id>/', generate_card_view, name='generate_card'),
+    path('lead-notes/', lead_notes, name='lead_notes'), 
 ]
 
 if settings.DEBUG:  # This is important to serve media files only in development

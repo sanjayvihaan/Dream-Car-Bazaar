@@ -415,6 +415,13 @@ body {
     }
 }
 
+.notes_action_icons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
 </style>
 
 {% endblock %}
@@ -575,7 +582,7 @@ body {
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" data-bs-toggle="tab" href="#notesTab">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#notesTab" id="notes_tab">
                                                 <i class="fas fa-sticky-note me-1"></i> Notes
                                             </a>
                                         </li>
@@ -646,8 +653,11 @@ body {
                                                 <div class="add-note">
                                                     <textarea id="salesNotes" class="notes-textarea" placeholder="Add a new note..."></textarea>
                                                     <div class="d-grid">
-                                                        <button class="btn btn-primary" onclick="saveNotes()">
+                                                        <button class="btn btn-primary" id="save_notes" onclick="save_notes()">
                                                             <i class="fas fa-plus me-1"></i> Add Note
+                                                        </button>
+                                                        <button class="btn btn-primary" id="edit_notes" style="display: none;">
+                                                            <i class="fas fa-plus me-1"></i> Edit Note
                                                         </button>
                                                     </div>
                                                 </div>
@@ -676,6 +686,7 @@ body {
                                 </div>
 
                                 <script>
+                                    var notesArray = []
                                     document.addEventListener("DOMContentLoaded", function () {
                                         console.log("Initializing AG Grid...");
                                     
@@ -883,6 +894,8 @@ body {
 
 
                                         function openUserPanel(data) {
+                                            getNotes(data.id, "fetch-all", null, null)
+                                            current_lead_id = data.id
                                             // Clear previous content
                                             document.getElementById("userCarList").innerHTML = "";
                                             document.getElementById("contactActions").innerHTML = "";
@@ -892,6 +905,7 @@ body {
                                         
                                             // Set the lead details in the panel header
                                             document.getElementById("userDetailsPanelLabel").textContent = `Lead Details - ${data.user}`;
+
                                         
                                             // Add contact actions
                                             const contactActionsHtml = `
@@ -1025,108 +1039,12 @@ body {
                                             }
                                         
                                             // Load previous notes if available
-                                            loadNotes(data.id);
-                                        
+                                            //loadNotes(data.id);
+
                                             // Show the side panel
                                             var userPanel = new bootstrap.Offcanvas(document.getElementById("userDetailsPanel"));
                                             userPanel.show();
                                         }
-                                        /*function openUserPanel(leadData) {
-                                            let userDetailsPanel = document.getElementById("userDetailsPanel");
-                                            
-                                            if (!userDetailsPanel) {
-                                                console.error("userDetailsPanel not found here");
-                                                return;
-                                            }
-                                        
-                                            if (!leadData || !leadData.id) {
-                                                console.error("Lead Data is missing or invalid: ", leadData);
-                                                return;
-                                            }
-                                        
-                                            userDetailsPanel.dataset.leadId = leadData.id;
-                                            console.log("Lead Data set:", leadData);
-                                        
-                                            // Check and set Lead ID Display
-                                            let leadIdDisplay = document.getElementById("leadIdDisplay");
-                                            if (leadIdDisplay) {
-                                                leadIdDisplay.textContent = leadData.id;
-                                            } else {
-                                                console.error("leadIdDisplay element not found!");
-                                            }
-                                        
-                                            // Check and set Sales Notes
-                                            let salesNotes = document.getElementById("salesNotes");
-                                            if (salesNotes) {
-                                                salesNotes.value = "";  // Clear previous notes
-                                            } else {
-                                                console.error("salesNotes element not found!");
-                                            }
-                                        
-                                            // Check and populate interested cars
-                                            let carListContainer = document.getElementById("userCarList");
-                                            if (!carListContainer) {
-                                                console.error("userCarList element not found!");
-                                                return;
-                                            }
-                                            carListContainer.innerHTML = ""; // Clear previous cars
-                                        
-                                            if (leadData.interestedCars && leadData.interestedCars.length > 0) {
-                                                leadData.interestedCars.forEach((car, index) => {
-                                                    let carItem = document.createElement("div");
-                                                    carItem.classList.add("card", "mb-3", "shadow-sm");
-                                        
-                                                    let carouselId = `carCarousel_${index}`;
-                                                    let carouselHtml = `
-                                                        <div id="${carouselId}" class="carousel slide" data-bs-ride="carousel">
-                                                            <div class="carousel-inner">
-                                                                ${car.images.map((img, idx) => `
-                                                                    <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-                                                                        <img src="${img}" class="d-block w-100 rounded" alt="Car Image">
-                                                                    </div>
-                                                                `).join('')}
-                                                            </div>
-                                                            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
-                                                                <span class="carousel-control-prev-icon"></span>
-                                                            </button>
-                                                            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
-                                                                <span class="carousel-control-next-icon"></span>
-                                                            </button>
-                                                        </div>
-                                                    `;
-                                        
-                                                    carItem.innerHTML = `
-                                                        <div class="card-header d-flex justify-content-between">
-                                                            <h6 class="mb-0">${car.car_name}</h6>
-                                                            <button class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#carDetails_${index}">
-                                                                <i class="fas fa-chevron-down"></i>
-                                                            </button>
-                                                        </div>
-                                                        <div id="carDetails_${index}" class="collapse show">
-                                                            <div class="card-body">
-                                                                ${carouselHtml}
-                                                                <p><strong>Reg No:</strong> ${car.registration_no}</p>
-                                                                <p><strong>Updated:</strong> ${car.updated_at}</p>
-                                                                <p><strong>Price:</strong> ${car.demand_price}</p>
-                                                                <p><strong>Status:</strong> <span class="badge ${getBadgeClass(car.status)}">${car.status}</span></p>
-                                                                <a href="/dealer/car_detail/${car.car_id}" class="btn btn-primary btn-sm w-100">View</a>
-                                                            </div>
-                                                        </div>
-                                                    `;
-                                                    carListContainer.appendChild(carItem);
-                                                });
-                                            } else {
-                                                carListContainer.innerHTML = "<p class='text-muted'>No interested cars found.</p>";
-                                            }
-                                        
-                                            //loadNotes(leadData.id);
-                                        
-                                            let userPanel = new bootstrap.Offcanvas(userDetailsPanel);
-                                            userPanel.show();
-                                        }*/
-                                        
-                                        
-                                           
                                         
                                         function getBadgeClass(status) {
                                             switch (status) {
@@ -1136,15 +1054,10 @@ body {
                                                 default: return "badge-soft-secondary";
                                             }
                                         }
-
-                                        
-                                        
-                                        
-                                        
-
                                     });
 
                                     document.addEventListener("DOMContentLoaded", function () {
+                                        var current_lead_id = "";
                                         function saveNotes() {
                                             const noteText = document.getElementById('salesNotes').value;
                                             if (noteText.trim() === '') return;
@@ -1417,7 +1330,11 @@ body {
 
 
                                         function openUserPanel(data) {
+                                            getNotes(data.id, "fetch-all", null, null)
+                                            current_lead_id = data.id
                                             console.log("Opening user panel for:", data); // Debugging
+                                            current_lead_id = data.id
+                                            console.log('current_lead_id: ', current_lead_id)
                                         
                                             // Clear previous content
                                             document.getElementById("userCarList").innerHTML = "";
@@ -1946,6 +1863,8 @@ body {
         
         
                                                 function openUserPanel(data) {
+                                                    getNotes(data.id, "fetch-all", null, null)
+                                                    current_lead_id = data.id
                                                     console.log("Opening user panel for:", data); // Debugging
                                                 
                                                     // Clear previous content
@@ -2474,6 +2393,8 @@ body {
     
     
                                             function openUserPanel(data) {
+                                                getNotes(data.id, "fetch-all", null, null)
+                                                current_lead_id = data.id
                                                 console.log("Opening user panel for:", data); // Debugging
                                             
                                                 // Clear previous content
@@ -2748,6 +2669,8 @@ body {
                                                     <p>${noteText}</p>
                                                     <small class="note-meta">Added on: ${new Date().toLocaleDateString()}</small>
                                                 `;
+
+
                                         
                                                 document.getElementById('notesContainer').prepend(noteItem);
                                                 document.getElementById('salesNotes').value = '';
@@ -2804,12 +2727,113 @@ body {
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 
 <script>
-    $(document).ready(function () {
-        $('.dataTableClass').DataTable({
-            
-        });
-    });
+    function getNotes(lead_id, note_type, note_id, notes) {
+        //console.log('Hit the getNotes');
+        let csrf_token = getCSRFToken()
+        $.ajax({
+            url: "{% url 'dealer:lead_notes' %}",
+            type: "POST",
+            dataType: "json",
+            data: {
+                lead_id: lead_id,
+                note_id: note_id,
+                notes: notes,
+                note_type: note_type,
+            },
+            headers: { "X-CSRFToken": csrf_token }, 
+            success: function (data) {
+                notesArray = JSON.parse(data.datas); 
+                $("#notesContainer").empty();
+                $.each(notesArray, function (index, note) {
+                    //console.log('note: ', note.pk)
+                    const noteText = note.fields.notes; 
+                    const createdAt = formatDateToIST(note.fields.created_at); 
+                    const noteId = note.pk
+                    const noteItem = document.createElement('div');
+                    noteItem.classList.add('note-item');
+                    noteItem.innerHTML = `
+                    <div>
+                        <div class="notes_action_icons">
+                            <a id="edit_note" data-note-id=${noteId} style="cursor: pointer;">Edit</a>
+                            <a id="delete_note" data-note-id=${noteId} style="cursor: pointer;">Delete</a>
+                        </div>
+                        <p>${noteText}</p>
+                        <small class="note-meta">Created at: ${createdAt}</small>
+                    </div>
+                    `;
 
+            
+                    document.getElementById('notesContainer').append(noteItem);
+                });
+                //console.log('noteArray: ', notesArray)
+            },            
+        });
+    }
+
+    $(document).on('click', '#edit_note', function() {
+        let note_element = $(this);
+        let noteId = note_element.data('note-id'); 
+        //console.log('noteId edit_delete: ', noteId);
+        const note = notesArray.find(n => n.pk === noteId)
+        if(note){
+            $('.offcanvas-body').animate({ scrollTop: 0 }, 400);
+            $('#salesNotes').val(note.fields.notes);
+            $('#save_notes').css('display', 'none')
+            $('#edit_notes').css('display', 'block').on('click', function(){
+                const notes_content = $('#salesNotes').val();
+                //console.log('notes_content -->', notes_content)
+                getNotes(current_lead_id, "edit-note", noteId, notes_content)
+                $(this).css('display', 'none')
+                $('#save_notes').css('display', 'block')
+                $('#salesNotes').val('')
+            })
+        }
+    })
+
+    $(document).on('click', '#delete_note', function() {
+        $('.offcanvas-body').animate({ scrollTop: 0 }, 400);
+        let note_element = $(this);
+        let noteId = note_element.data('note-id'); 
+        getNotes(current_lead_id, 'delete-note', noteId, null)
+    })
+       
+    function formatDateToIST(utcDate) {
+        let date = new Date(utcDate);
+        let istDate = new Intl.DateTimeFormat('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(date);
+        
+        return istDate.replace(',', ' -'); 
+    }
+    
+    function getCSRFToken() {
+        let name = "csrftoken=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let cookies = decodedCookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            let c = cookies[i].trim();
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    
+    function save_notes() {
+        console.log('current_lead_id: ', current_lead_id);
+        const noteText = document.getElementById('salesNotes').value;
+        getNotes(current_lead_id, "new-note", null, noteText);
+        console.log('After getNotes')
+        document.getElementById('salesNotes').value = '';
+    }
+    
 
     function selectCar(carName) {
         document.getElementById('carFilter').value = carName;
@@ -2818,8 +2842,6 @@ body {
     }
     
 </script>
-
-
 
 <script>
     // Function to search in the currently active tab's table
