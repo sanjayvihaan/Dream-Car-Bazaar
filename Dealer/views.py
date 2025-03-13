@@ -2,11 +2,13 @@ from django.shortcuts import render, HttpResponseRedirect
 from ProductManagement.models import *
 from UserManagement.models import *
 from Customer.models import *
+from .models import LeadNotes
 from django.db.models import Exists, F, Subquery, OuterRef, Q
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
-# Create your views here.
+from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -17,7 +19,6 @@ from django.core.paginator import Paginator
 import xlwt
 from django.shortcuts import get_object_or_404
 
-
 # from django.views import View
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -27,6 +28,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from django.http import HttpResponse
+import os
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -36,6 +38,9 @@ from django.utils import timezone
 import json
 from UserManagement.views import *
 from datetime import datetime, date
+from django.views.decorators.http import require_POST
+from django.shortcuts import redirect
+from django.db.models import Q
 
 
 def share_this(request,car_id):
@@ -65,6 +70,8 @@ def upload_pdf(request):
 
     return JsonResponse({'success': False, 'error': 'No PDF uploaded'})
 
+# from django.conf import settings
+# import os
 
 # def upload_pdf(request):
 #     if 'credentials' not in request.session:
@@ -368,6 +375,8 @@ def download_excel(request):
 
 def add_car(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     # all_car_details = CarDetails.objects.filter(created_by=user)
     car_brand = CarBrands.objects.filter(is_active=True)
     car_model = CarModel.objects.filter(is_active=True)
@@ -410,9 +419,6 @@ def repost_ad(request,id):
             car.status = car.previous_status
             car.previous_status = None
             car.save()
-            
-        if car.previous_status == None:
-            pass
         messages.info(request, "Reposted Successfully !!")
         referrer = request.META.get('HTTP_REFERER')
         return HttpResponseRedirect(referrer)
@@ -583,13 +589,15 @@ def update_top(request,id):
 
 def car_list(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     all_cars = CarDetails.objects.filter(created_by=user, review='approved').exclude(status='deleted').order_by('-updated_at')
     # made_live = DraftCarDetails.objects.filter(is_draft=False)
     all_car_details = list(all_cars)
     cars_count = len(all_car_details)
     # all_car_details = CarDetails.objects.exclude(status = 'deleted')
     # car_id = request.POST.get('car_detail.id')
-    live = CarDetails.objects.filter(created_by=user,status="live",review='approved').order_by('-updated_at')
+    live = CarDetails.objects.filter(created_by=user,status="live").order_by('-updated_at')
     live_count = len(live)
     expired = CarDetails.objects.filter(created_by=user,status="expired").order_by('-updated_at')
     expired_count = len(expired)
@@ -597,11 +605,8 @@ def car_list(request):
     sold_count = len(sold)
     spams = SpamReport.objects.all()
     deleted_cars = CarDetails.objects.filter(created_by=user,status="deleted").order_by('-created_at')
-    # drafts = DraftCarDetails.objects.filter(created_by=user,is_draft=True).exclude(status='deleted').exclude(review='approved').exclude(review='rejected').order_by('-updated_at')
-    drafts = DraftCarDetails.objects.all()
-    processing = CarDetails.objects.filter(created_by=user,status='processing').order_by('-updated_at')
-    alldrafts = list(chain(drafts,processing))
-    deleted_drafts = DraftCarDetails.objects.filter(created_by=user,status='deleted').order_by('-created_at')
+    drafts = DraftCarDetails.objects.filter(is_draft=True).exclude(status='deleted').order_by('-updated_at')
+    deleted_drafts = DraftCarDetails.objects.filter(status='deleted').order_by('-created_at')
     deleted = list(chain(deleted_cars,deleted_drafts))
     
     car_brand = CarBrands.objects.filter(is_active=True)
@@ -612,27 +617,26 @@ def car_list(request):
         item.status = "deleted"
         item.save()
     deleted_count = len(deleted)
-    draft_count = len(alldrafts)
-    
-    # for spam in spams:
-    #     temp = spam.draft_id
-    #     res = f"{temp}"
-    #     item = CarDetails.objects.get(id=res)
-    #     item.remarks = spam.remarks
-    #     item.user = spam.user.get_full_name()
-    #     if item:
-    #         rejected.append(item)
-    #     else:
-    #         continue
-    # gallery = []
-    rejected = CarDetails.objects.filter(created_by=user, review='rejected').exclude(status='deleted').order_by('-updated_at')
+    draft_count = len(drafts)
+    rejected = []
+    for spam in spams:
+        temp = spam.draft_id
+        res = f"{temp}"
+        item = CarDetails.objects.get(id=res)
+        item.remarks = spam.remarks
+        item.user = spam.user.get_full_name()
+        if item:
+            rejected.append(item)
+        else:
+            continue
+    gallery = []
     # for draft in drafts:
     #     img = CarImage.objects.filter(car_detail= draft)
     #     if img:
     #         # draft.images = img
     #         gallery.append(img)
     
-    return render(request, "Dealer/product/car_list.html", {'all_car_detail': all_car_details,'draft_count':draft_count,'drafts': alldrafts,'sold':sold,'deleted':deleted,'live':live,'expired':expired,
+    return render(request, "Dealer/product/car_list.html", {'all_car_detail': all_car_details,'draft_count':draft_count,'drafts': drafts,'sold':sold,'deleted':deleted,'live':live,'expired':expired,
     'rejected':rejected,'cars_count':cars_count,'live_count':live_count,'expired_count':expired_count,'sold_count':sold_count,'deleted_count':deleted_count,
     'car_brands': car_brand,'car_models': car_model,'car_variants': car_variant})
 
@@ -679,76 +683,65 @@ def update_duration(request):
         return JsonResponse({'message': 'Duration updated'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
     
-def update_lead_status(request,car):
+def update_lead_status(request, car):
     post = get_object_or_404(CarDetails, id=car)
-    owner = post.created_by
     group_list = request.user.groups.values_list('name', flat=True)
-    today = timezone.now().date()
-    # lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post)
+    
     if request.method == 'POST':
         action = request.POST.get('action')
-        day = request.POST.get('std_day')
+        std_day_str = request.POST.get('std_day', None)
         
+        lead, created = Lead.objects.get_or_create(
+            user=request.user, 
+            viewed_car=post,
+            defaults={'status': 'cold', 'user_type': group_list[0]}
+        )
         
-        if action == 'contact_seller':
-            lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'status': 'warm', 'user_type': group_list[0]})
-            if not created:
-                lead.status = 'warm'
-                lead.visit_count += 1
-                lead.user_type = group_list[0]
-            else:
-                lead.visit_count = 1
-            lead.save()
-            lead.refresh_from_db()
-            messages.success(request, 'Our Team may contact you soon !')
+        if not created:
+            if action == 'contact_seller':
+                if lead.status in ['cold', 'hot']:  
+                    lead.status = 'warm'
+            elif action == 'schedule_test_drive' and std_day_str:
+                std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
+                if lead.status in ['cold', 'warm']: 
+                    lead.status = 'hot'
+                lead.visit_time = std_day  
+                
+            lead.visit_count += 1
+            lead.user_type = group_list[0]
+        else:
+            lead.visit_count = 1  
 
-        elif action == 'schedule_test_drive':
-            # Convert std_day from string to date
-            std_day_str = request.POST.get('std_day')
+        lead.save()
+
+        if action == 'schedule_test_drive' and std_day_str:
             std_day = datetime.strptime(std_day_str, "%Y-%m-%d").date()
-            
-            lead, created = Lead.objects.get_or_create(user=request.user, viewed_car=post, defaults={'visit_time': day ,'status':'hot','user_type': group_list[0]})
-            notification, notify = Notification.objects.get_or_create(user=request.user, car=post)
-            # Only set the message once, no matter if the notification was created or fetched
-            
-            if std_day:
-                days_left = (std_day - date.today()).days
-
-                if days_left <= 2:
-                    msg = f" Hurry {days_left} Days left! {lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
-                else:
-                    msg = f"{lead.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}"
-                    
+            notification, _ = Notification.objects.get_or_create(user=request.user, car=post)
+            days_left = (std_day - date.today()).days
+            if days_left <= 2:
+                msg = f" Hurry! {days_left} Days left! {request.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}."
+            else:
+                msg = f" {request.user.get_full_name()} scheduled a test drive on {std_day} for {lead.viewed_car.variant.model.brand.name} {lead.viewed_car.variant.model.name} {lead.viewed_car.variant.name}."
             notification.message = msg
             notification.save()
 
-            if not created:
-                lead.status = 'hot'
-                lead.visit_time = day
-                lead.visit_count += 1
-                lead.user_type = group_list[0]
-                # diff = (lead.visit_time - today).days
-                # if diff <= 2:
-                #     msg = f" Hurry {diff} Days left! {lead.user.get_full_name()} scheduled a test drive on {day} for {lead.viewed_car.variant.model.brand.name}{lead.viewed_car.variant.model.name}{lead.viewed_car.variant.name}"
-                #     alert, flag = Notification.objects.get_or_create(user=request.user, car=post)
-                #     alert.message = msg
-                #     alert.save()
-            else:
-                lead.visit_count = 1
-            lead.save()
-            messages.success(request, 'Our Team will contact you soon !!!')
-        
-        return  HttpResponseRedirect(request.path)
-            
-    return HttpResponseRedirect('/')
-  
+        messages.success(request, 'Your request has been recorded! Our team will contact you soon.')
+        return HttpResponseRedirect(request.path)
+    
+    return HttpResponseRedirect('/')  
 
 def follow_up_view(request):
+    user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     selected_status = request.GET.get('status', 'all')
-    cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
-    warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
-    hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
-
+    try:
+        cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
+        warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
+        hot_leads = Lead.objects.filter(status='hot', viewed_car__created_by=request.user)
+    except Exception as e:
+        print('Exception occurred while fetching lead records:', e)
+    
     if selected_status == 'all':
         all_leads = Lead.objects.filter(viewed_car__created_by=request.user)
     else:
@@ -768,6 +761,7 @@ def follow_up_view(request):
     selected_car = request.GET.get('car_name')
 
     if selected_car and selected_car != 'all':
+        print('if part')
         selected_car_parts = selected_car.split(' ', 2)
         if len(selected_car_parts) == 3:
             brand_name, model_name, variant_name = selected_car_parts
@@ -803,8 +797,8 @@ def follow_up_view(request):
                     Q(viewed_car__variant__name=variant_name)
                 )
 
-    # If no car is selected or 'all' is selected, show all leads.
     else:
+        print('else part')
         cars = CarDetails.objects.filter(created_by=request.user)
         cold_leads = Lead.objects.filter(status='cold', viewed_car__created_by=request.user)
         warm_leads = Lead.objects.filter(status='warm', viewed_car__created_by=request.user)
@@ -822,6 +816,7 @@ def follow_up_view(request):
         'selected_car': selected_car,
         'selected_status': selected_status
     }
+    print('context: ', context)
     return render(request, 'Dealer/followup/followup.html', context)
 
 
@@ -846,7 +841,6 @@ def custom_404(request, exception):
     return render(request, "Dealer/error/404.html", status=404)
 
 def download_lead_excel(request):
-    
     page_number = request.GET.get('page', 1)  # Default to page 1 if not specified
     # Add data from the database
     cars = Lead.objects.filter(viewed_car__created_by= request.user)  # Fetch your records
@@ -917,15 +911,10 @@ def customer_car(request):
     else:
         return HttpResponseRedirect('/')
 
-
-
-
-
-
-
-
 def profile(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     if not user.is_authenticated:
         messages.info(request,"Please login to access the page!")
         return home(request)
@@ -939,7 +928,6 @@ def profile(request):
         dp = request.FILES.get('dealer_dp')
         aadhar = request.FILES.get('dealer_aadhar')
         pan = request.FILES.get('dealer_pan')
-        gst = request.FILES.get('dealer_gst')
         if edit == 'edit_name':
             CustomUser.objects.filter(id=user.id).update(firm_name=firm_name,first_name=user_name)
         elif edit == 'edit_email':
@@ -949,10 +937,9 @@ def profile(request):
         elif edit == 'edit_DP' and dp:
             user.user_image = dp  # Assign the uploaded image to the user instance
             user.save()
-        elif edit == 'update_card' and aadhar and pan and gst:
+        elif edit == 'update_card' and aadhar and pan:
             user.aadhar_card = aadhar
             user.pan_card = pan
-            user.gst = gst
             user.save()
         elif edit == 'edit_pass':
             current_password = request.POST.get('dealer_old_password')
@@ -973,6 +960,8 @@ def profile(request):
 
 def dealer_dashboard(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     total_car = CarDetails.objects.filter(created_by=user).count()
     # views.py
     notifications = Notification.objects.filter(car__created_by=user ,is_read=False).order_by('-created_at')
@@ -982,7 +971,7 @@ def dealer_dashboard(request):
 def expired_insurances(request):
     today = timezone.now().date()
 
-    insurances = Insurance.objects.filter(created_by= request.user)
+    insurances = Insurance.objects.all()
     current = []
     expired = []
 
@@ -993,15 +982,14 @@ def expired_insurances(request):
         reminder_date = expiry_date - timedelta(days=5)
         # Append insurance object to the appropriate list
         if expiry_date >= today:
-            if insurance.get_status() == 'live':
-                current.append((insurance,expiry_date,reminder_date))
+            current.append((insurance,expiry_date,reminder_date))
         else:
             insurance.status = insurance.get_status()
             expired.append((insurance,expiry_date,reminder_date))
     
-    expired.sort(key=lambda x: x[1], reverse = True)
+    expired.sort(key=lambda x: x[1])
     # Render the template with the sorted warranties
-    return expired, current
+    return expired
 
 def sorted_insurances(request):
     # Get the current date
@@ -1018,7 +1006,7 @@ def sorted_insurances(request):
     # Filter  by expiry date
     filtered_insurances = Insurance.objects.filter(
         risk_start_date__isnull=False,
-        created_by = request.user
+        
     )
 
     # Calculate expiry date for each  and filter based on the calculated range
@@ -1040,9 +1028,6 @@ def sorted_insurances(request):
     
     return renewal
 
-from django.views.decorators.http import require_POST
-from django.shortcuts import redirect
-
 @require_POST
 def delete_insurance(request, id):
     try:
@@ -1060,9 +1045,11 @@ def delete_insurance(request, id):
 
 def insurance(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     car_brand = CarBrands.objects.filter(is_active=True)
     # insurance_list = Insurance.objects.filter(is_active=True)
-    insurance_list = Insurance.objects.filter(created_by=user).order_by('-risk_end_date')
+    insurance_list = Insurance.objects.filter(created_by=user)
     insurance_count = insurance_list.count()
     for insurance in insurance_list:
         insurance.status = insurance.get_status()    
@@ -1106,14 +1093,14 @@ def insurance(request):
         city = request.POST.get('city')
         car_model_instance = CarModel.objects.filter(id=car_model)
         total_premium = request.POST.get('total_premium')
-        created_by = user
+        
 
         if car_model_instance.exists():
             insurance_dict = {'user_phone_no': user_phone_no,'insured_name': insured_name , 'policy_no': policy_no,
             'insurer_name':insurer_name ,'city': city, 'type': type, 'product': product,
             'policy_type': policy_type, 'risk_start_date': risk_start_date, 'risk_end_date': risk_end_date,
             'ncb_status': ncb_status, 'idv': idv, 'total_premium': total_premium, 'car_model': car_model_instance.last(),
-            'fuel_type': fuel_type, 'next_renewal_date': next_renewal_date, 'rto_state': rto_state, 'created_by': created_by,'is_active': 1}
+            'fuel_type': fuel_type, 'next_renewal_date': next_renewal_date, 'rto_state': rto_state, 'is_active': 1}
             # print()
             Insurance.objects.create(**insurance_dict)
             messages.info(request, "Insurance Form Submit Successfully !!")
@@ -1124,16 +1111,13 @@ def insurance(request):
     # car_details = CarDetails.objects.get(id=id)
     # print('car_details = ', car_details.variant)
     insurances_with_expiry = sorted_insurances(request)
-    expired, live = expired_insurances(request)  
-    live_count = len(live)
+    expired = expired_insurances(request)   
     expired_count = len(expired)
     renewal_count = len(insurances_with_expiry)
     return render(request, "Dealer/insurance/insurance.html", {'companies':companies,'car_brand': car_brand,'insurance_list':insurance_list,'renewal_count':renewal_count,'insurance_count':insurance_count,'expired_count':expired_count,
-                            'expired':expired,'renewal':insurances_with_expiry, 'current':live ,'live_count':live_count })
+                            'expired':expired,'insurances_with_expiry':insurances_with_expiry  })
 
 
-
-from django.utils import timezone
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import get_object_or_404,redirect
@@ -1153,17 +1137,14 @@ def expired_warranty(request):
         reminder_date = expiry_date - timedelta(days=5)
         # Append warranty object to the appropriate list
         if expiry_date >= today:
-            if warranty.get_status() == 'live':
-                current_warranties.append((warranty,expiry_date,reminder_date))
+            current_warranties.append((warranty,expiry_date,reminder_date))
         else:
-            # warranty.status = warranty.get_status()
-            # warranty.save()
+            warranty.status = warranty.get_status()
             expired_warranties.append((warranty,expiry_date,reminder_date))
     
     expired_warranties.sort(key=lambda x: x[1])
-    
     # Render the template with the sorted warranties
-    return expired_warranties, current_warranties
+    return expired_warranties
 
 def sorted_warranty_users(request):
     # Get the current date
@@ -1190,9 +1171,9 @@ def sorted_warranty_users(request):
         # expiry_date = warranty.purchase_date + timedelta(days=(warranty.warranty_period * 30))
         expiry_date = warranty.purchase_date + relativedelta(months=warranty.warranty_period) - relativedelta(days=1)
         reminder_date = expiry_date - timedelta(days=5)
-        if warranty.get_status() == 'renew':
-            if expiry_date >= today:
-                warranties_in_range.append((warranty, expiry_date,reminder_date))
+        if filter_start_date <= expiry_date <= filter_end_date:
+            warranty.status = warranty.get_status()
+            warranties_in_range.append((warranty, expiry_date,reminder_date))
 
     # Sort warranties by expiry date
     # warranties_in_range.sort(key=lambda x: x.purchase_date + timedelta(days=(x.warranty_period * 30)))
@@ -1218,17 +1199,12 @@ def delete_warranty(request, id):
     
 def warranty(request):
     user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
     car_brand = CarBrands.objects.filter(is_active=True)
-    warranty_list = Warranty.objects.filter(created_by=user).order_by('-purchase_date')
+    warranty_list = Warranty.objects.filter(created_by=user)
     warranty_count = warranty_list.count()
     warranty_id = request.POST.get('warranty_id')
-
-    warranties_with_expiry = sorted_warranty_users(request)
-    expired_warranties, live_warranty = expired_warranty(request)
-    live_count = len(live_warranty)
-    expired_count = len(expired_warranties)
-    renewal_count = len(warranties_with_expiry)
-    
     for warranty in warranty_list:
         warranty.status = warranty.get_status()
         warranty.save()
@@ -1276,9 +1252,13 @@ def warranty(request):
         return HttpResponseRedirect(referrer)
 
 
+    warranties_with_expiry = sorted_warranty_users(request)
+    expired_warranties = expired_warranty(request)
+    expired_count = len(expired_warranties)
+    renewal_count = len(warranties_with_expiry)
 
     return render(request, "Dealer/warranty/warranty.html", {'car_brand': car_brand, 'warranty_list': warranty_list,'warranty_count':warranty_count,'renewal_count':renewal_count,'expired_count':expired_count,
-                            'warranties_with_expiry':warranties_with_expiry,'expired_warranties': expired_warranties, 'current_warranty':live_warranty, 'live_count':live_count})
+                            'warranties_with_expiry':warranties_with_expiry,'expired_warranties': expired_warranties })
 
 
 
@@ -1312,3 +1292,38 @@ def generate_card_view(request, car_id):
     car_detail = get_object_or_404(CarDetail, id=car_id)
     image_buffer = generate_visiting_card(car_detail)
     return HttpResponse(image_buffer, content_type='image/png')
+
+def lead_notes(request):
+    user = request.user
+    if not user.groups.filter(name='Dealer').exists():
+        return HttpResponseRedirect('/')
+    
+    note_id = request.POST.get('note_id')
+    lead_id = request.POST.get('lead_id')
+    notes = request.POST.get('notes')
+    
+    
+    if request.POST.get('note_type')=='fetch-all':
+        if lead_id not in [None,'']:
+            print('leadid: ', lead_id)
+            datas = LeadNotes.objects.filter(lead_id=lead_id, dealer_id=user.id).order_by("-created_at")
+            serialized_queryset = serializers.serialize('json',  list(datas))
+            return JsonResponse({'datas': serialized_queryset})
+
+    if request.POST.get('note_type')=='new-note' and lead_id not in [None, '']:
+        lead_note = LeadNotes.objects.create(lead_id=lead_id, dealer_id=user.id, notes=notes)
+    
+    if request.POST.get('note_type')=='edit-note' and lead_id not in [None, ''] and note_id:
+        lead_note = LeadNotes.objects.get(id=note_id)
+        if lead_note:
+            lead_note.notes = notes
+            lead_note.modified_at = timezone.now()
+            lead_note.save()
+        
+    if request.POST.get('note_type')=='delete-note' and lead_id not in [None, ''] and note_id:
+        lead_note = LeadNotes.objects.get(id=note_id)
+        lead_note.delete()
+            
+    datas = LeadNotes.objects.filter(lead_id=lead_id, dealer_id=user.id).order_by("-created_at")
+    serialized_queryset = serializers.serialize('json',  list(datas))
+    return JsonResponse({'datas': serialized_queryset})

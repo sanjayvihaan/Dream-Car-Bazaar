@@ -248,16 +248,26 @@ def about(request):
     form = LoginForm()
     return render(request, "Website/about.html", {'form': form})
     
-
+    
 def our_package(request):
+    if request.method == 'POST':
+        package_name = request.POST.get("package")
+        print('package name: ', package_name)
+        user = request.user
+        dealer_group = Group.objects.get(name="Dealer")
+        customer_group = Group.objects.get(name="Customer")
+        if package_name and customer_group in user.groups.all():
+            try:
+                user.groups.add(dealer_group)
+            except Exception as e:
+                print('Error in converting Customer to Dealer', e)
+            return HttpResponseRedirect('/')
     return render(request, "Website/our-package.html")
     
 
 def terms_and_conditions(request):
     return render(request, "Website/terms-and-conditions.html")
     
-
-
 def privacy_policy(request):
     return render(request, "Website/privacy-policy.html")
     

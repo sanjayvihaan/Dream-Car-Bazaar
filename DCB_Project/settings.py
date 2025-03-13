@@ -97,7 +97,6 @@ WSGI_APPLICATION = 'DCB_Project.wsgi.application'
 # }
 
 SELECTED_DB = 'Test'
-# SELECTED_DB = ''
 
 if SELECTED_DB == 'Test':
     DATABASES = {
@@ -108,7 +107,7 @@ if SELECTED_DB == 'Test':
             'PASSWORD': 't1BXLcLMfam85uMRXYt8',
             'HOST': 'dcbtest1.c90262igogn5.ap-south-1.rds.amazonaws.com',
             'CONN_MAX_AGE': None,
-            'PORT': '5432',  # Set to empty string for default.
+            'PORT': '5432',  
         }
     }
 else:

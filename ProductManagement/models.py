@@ -371,10 +371,6 @@ class CarImage(models.Model):
     def __str__(self):
         return self.name
 
-
-
-
-
 class Insurance(models.Model):
     id = models.CharField(default=generate_unique_object_id, primary_key=True, max_length=24)
     phone_regex = RegexValidator(regex=r'^[6789]\d{9}$',
